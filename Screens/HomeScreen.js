@@ -39,7 +39,7 @@ const HomeScreen = ({ navigation }) => {
 
             <View style={[styles.secondChildSibling, {backgroundColor: '#f5f5ff'}]}>
                 <Text style={styles.secondChildSmallText}>Want to add a list ?</Text>
-                <Pressable style={styles.secondChildButton}>
+                <Pressable style={styles.secondChildButton} onPress={() => navigation.navigate('Create Item')}>
                     <Text style={styles.secondChildButtonText}>Get Started</Text>
                 </Pressable>
             </View>
@@ -61,21 +61,21 @@ const HomeScreen = ({ navigation }) => {
 
         {/* FOURTH */}
         <View style={styles.fourthChild}>
-            <Pressable style={styles.fourthChildButton}>
+            <Pressable style={styles.fourthChildButton} onPress={() => navigation.navigate('Shopping list')}>
                 <View style={[styles.fourthChildIconWrapper, {backgroundColor: '#F7E5E7', borderColor: '#E91E63'}]}>
                     <Feather name='shopping-bag' size={30} color='#FFA1AE'/>
                 </View>
                 <Text style={styles.fourthChildText}>To-Shop</Text>
             </Pressable>
 
-            <Pressable style={styles.fourthChildButton}>
+            <Pressable style={styles.fourthChildButton} onPress={() => navigation.navigate('Shopping list')}>
                 <View style={[styles.fourthChildIconWrapper, {backgroundColor: '#FFF4E0', borderColor: '#F39C12'}]}>
                     <MaterialIcons name='shopping-cart' size={30} color='#F6C92F'/>
                 </View>
                 <Text style={styles.fourthChildText}>Progress</Text>
             </Pressable>
 
-            <Pressable style={styles.fourthChildButton}>
+            <Pressable style={styles.fourthChildButton} onPress={() => navigation.navigate('Shopping list')}>
                 <View style={[styles.fourthChildIconWrapper, {backgroundColor: '#DAFEF2', borderColor: '#00B894'}]}>
                     <MaterialIcons name='shopify' size={30} color='#1DBD84'/>
                 </View>
