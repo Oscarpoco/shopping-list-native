@@ -1,6 +1,7 @@
 import { ADD_ITEM, DELETE_ITEM, SET_ERROR, SET_SUCCESS , FETCH_LISTS, DELETE_LIST, UPDATE_LIST, SAVE_LIST} from './actions';
 
 const initialState = {
+  lists: [],
   shoppingList: [],
   items: [],
   error: null,
@@ -49,10 +50,11 @@ const shoppingListReducer = (state = initialState, action) => {
 
         //   FETCH LISTS
     case FETCH_LISTS:
-      return {
-        ...state,
-        shoppingList: action.payload,
-      };
+        case FETCH_LISTS:
+            return {
+              ...state,
+              lists: action.payload,
+            };
     //   ENDS
 
     //   UPDATE LIST

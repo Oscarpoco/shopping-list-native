@@ -1,12 +1,64 @@
 import React from 'react';
 import { StyleSheet, Text, View, Pressable, TextInput } from 'react-native';
 
+// DATABASE
+import {
+    initializeDatabase,
+    addList,
+    getListById,
+    updateList,
+    deleteList,
+    getAllLists,
+  } from '../Database/sql.js';
+
+//   ENDS
+
+// REACT
+import { useEffect } from 'react';
+// ENDS
+
+// REDUX
+import { useDispatch, useSelector } from 'react-redux';
+// ENDS
+
 // ICONS
 import Entypo from 'react-native-vector-icons/Entypo';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const HomeScreen = ({ navigation }) => {
+
+    // INITIALIZE DATABASE
+ const dispatch = useDispatch();
+ const lists = useSelector(state => state.lists); 
+
+
+ // INITIALIZE DATABASE
+ useEffect(() => {
+    const setupDatabase = async () => {
+      try {
+        const initialized = await initializeDatabase();
+        if (initialized) {
+          console.log('DATABASE INITIALIZED SUCCESSFULLY!');
+          const storedList = await getAllLists();
+          dispatch(fetchLists(storedList)); 
+        }
+        console.log('Overall Shopping list', lists)
+
+      } catch (error) {
+        Alert.alert('Database Error', error.message || 'Failed to initialize database', [
+          { text: 'OK' },
+        ]);
+      }
+    };
+
+    setupDatabase();
+  }, [dispatch]);
+
+  console.log('Overall Shopping list', lists)
+
+
+
   return (
     <View style={styles.Parent}>
 

@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet, Text, View, Pressable, StatusBar, Platform  } from 'react-native';
+import { StyleSheet, Text, View, Pressable, FlatList } from 'react-native';
+import { useSelector } from 'react-redux';
 
 // ICONS
 import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
@@ -7,116 +8,82 @@ import Feather from 'react-native-vector-icons/Feather';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const ListScreen = ({ navigation }) => {
+  const lists = useSelector(state => state.lists); 
+
+  // Render each shopping list item
+  const renderListItem = ({ item }) => {
+    const { listTitle, description, timestamp, priority } = item;
+
+    // Assign a background color based on priority
+    const backgroundColor =
+      priority === 'High' ? '#E4516E' :
+      priority === 'Medium' ? '#5D6DFF' :
+      '#1DBD84'; 
+
+    return (
+      <Pressable style={[styles.secondSiblingItem, { backgroundColor }]}>
+        <Text style={styles.lastChildTextTitle}>{listTitle || 'Untitled List'}</Text>
+        <Text style={styles.lastChildTextDescription}>{description || 'No description provided'}</Text>
+        <Text style={styles.lastChildTextDate}>Created on {new Date(timestamp).toDateString()}</Text>
+      </Pressable>
+    );
+  };
+
   return (
     <View style={styles.Parent}>
-
-        {/* STATUS BAR */}
-        {/* <StatusBar hidden={false} backgroundColor={'#f9f9f9'}/> */}
-
-        {/* MAIN */}
-        <View style={styles.main}>
-            {/* FIRST */}
-            <View style={styles.firstChild}>
-                <Text style={styles.firstChildText}>To-Shop</Text>
-                <Feather name='shopping-bag' size={25} color='#FFA1AE'/>
-            </View>
-            {/* ENDS */}
-
-            {/* SECOND */}
-            <View style={styles.secondChild}>
-
-                <Pressable style={[styles.secondSiblingItem, {backgroundColor: '#5D6DFF'}]}>
-                    <Text style={styles.lastChildTextTitle}>Monthly Grocery</Text>
-                    <Text style={styles.lastChildTextDescription}>I have to buy grocery for my mom</Text>
-                    <Text style={styles.lastChildTextDate}>28 December 2024</Text>
-                </Pressable>
-
-                <Pressable style={[styles.secondSiblingItem, {backgroundColor: '#1DBD84'}]}>
-                    <Text style={styles.lastChildTextTitle}>Monthly Grocery</Text>
-                    <Text style={styles.lastChildTextDescription}>I have to buy grocery for my mom</Text>
-                    <Text style={styles.lastChildTextDate}>28 December 2024</Text>
-                </Pressable>
-
-                <Pressable style={[styles.secondSiblingItem, {backgroundColor: '#5D6DFF'}]}>
-                    <Text style={styles.lastChildTextTitle}>Monthly Grocery</Text>
-                    <Text style={styles.lastChildTextDescription}>I have to buy grocery for my mom</Text>
-                    <Text style={styles.lastChildTextDate}>28 December 2024</Text>
-                </Pressable>
-
-                <Pressable style={[styles.secondSiblingItem, {backgroundColor: '#E4516E'}]}>
-                    <Text style={styles.lastChildTextTitle}>Monthly Grocery</Text>
-                    <Text style={styles.lastChildTextDescription}>I have to buy grocery for my mom</Text>
-                    <Text style={styles.lastChildTextDate}>28 December 2024</Text>
-                </Pressable>
-
-                <Pressable style={[styles.secondSiblingItem, {backgroundColor: '#1DBD84'}]}>
-                    <Text style={styles.lastChildTextTitle}>Monthly Grocery</Text>
-                    <Text style={styles.lastChildTextDescription}>I have to buy grocery for my mom</Text>
-                    <Text style={styles.lastChildTextDate}>28 December 2024</Text>
-                </Pressable>
-
-            </View>
-            {/* ENDS */}
-
-
-            {/* LAST */}
-            <View style={styles.lastChild}>
-                <Pressable style={styles.lastChildAddButton} onPress={() => navigation.navigate('Create Item')}>
-                    <MaterialIcons name='add' size={25} color='#1DBD84'/>
-                    <Text style={styles.lastChildText}>add new list</Text>
-                </Pressable>
-            </View>
-            {/* ENDS */}
+      {/* MAIN */}
+      <View style={styles.main}>
+        {/* HEADER */}
+        <View style={styles.firstChild}>
+          <Text style={styles.firstChildText}>To-Shop</Text>
+          <Feather name="shopping-bag" size={25} color="#FFA1AE" />
         </View>
-        {/* ENDS */}
 
-
-        {/* SIDEBAR */}
-        <View style={styles.sideBar}>
-            <View style={styles.sideBarChild}>
-                <View style={styles.sideBarMenu}>
-                    <Pressable style={styles.sideBarMenuButton} onPress={() => navigation.navigate('Home')}>
-                        <View style={[styles.fourthChildIconWrapper]}>
-                            <FontAwesome6 name='clipboard-list' size={30} color='#444'/>
-                        </View>
-                    </Pressable>
-                </View>
-
-                <View style={styles.sideBarMenu}>
-                    <Pressable style={styles.sideBarMenuButton} onPress={() => navigation.navigate('Home')}>
-                        <View style={[styles.fourthChildIconWrapper]}>
-                            <Feather name='shopping-bag' size={30} color='#FFA1AE'/>
-                        </View>
-                    </Pressable>
-                </View>
-
-                <View style={styles.sideBarMenu}>
-                    <Pressable style={styles.sideBarMenuButton} onPress={() => navigation.navigate('Home')}>
-                        <View style={[styles.fourthChildIconWrapper]}>
-                            <MaterialIcons name='shopping-cart' size={30} color='#F6C92F'/>
-                        </View>
-                    </Pressable>
-                </View>
-
-                <View style={styles.sideBarMenu}>
-                    <Pressable style={styles.sideBarMenuButton} onPress={() => navigation.navigate('Home')}>
-                        <View style={[styles.fourthChildIconWrapper]}>
-                            <MaterialIcons name='shopify' size={30} color='#1DBD84'/>
-                        </View>
-                    </Pressable>
-                </View>
-
-                <View style={styles.sideBarMenu}>
-                    <Pressable style={styles.sideBarMenuButton} onPress={() => navigation.navigate('Home')}>
-                        <View style={[styles.fourthChildIconWrapper]}>
-                            <MaterialIcons name='home' size={30} color='#333'/>
-                        </View>
-                    </Pressable>
-                </View>
-            </View>
+        {/* LISTS */}
+        <View style={styles.secondChild}>
+          <FlatList
+            data={lists}
+            renderItem={renderListItem}
+            keyExtractor={(item, index) => index.toString()}
+            contentContainerStyle={{ paddingBottom: 20 }}
+          />
         </View>
-        {/* ENDS */}
-      
+
+        {/* ADD NEW LIST */}
+        <View style={styles.lastChild}>
+          <Pressable
+            style={styles.lastChildAddButton}
+            onPress={() => navigation.navigate('Create Item')}
+          >
+            <MaterialIcons name="add" size={25} color="#1DBD84" />
+            <Text style={styles.lastChildText}>Add New List</Text>
+          </Pressable>
+        </View>
+      </View>
+
+      {/* SIDEBAR */}
+      <View style={styles.sideBar}>
+        <View style={styles.sideBarChild}>
+          {[
+            // { name: 'clipboard-list', color: '#444' },
+            { name: 'shopping-bag', color: '#FFA1AE' },
+            { name: 'shopping-cart', color: '#F6C92F' },
+            { name: 'shopify', color: '#1DBD84' },
+            { name: 'home', color: '#333' },
+          ].map((icon, index) => (
+            <View style={styles.sideBarMenu} key={index}>
+              <Pressable
+                style={styles.sideBarMenuButton}
+                onPress={() => navigation.navigate('Home')}
+              >
+                <View style={styles.fourthChildIconWrapper}>
+                  <MaterialIcons name={icon.name} size={30} color={icon.color} />
+                </View>
+              </Pressable>
+            </View>
+          ))}
+        </View>
+      </View>
     </View>
   );
 };

@@ -1,3 +1,5 @@
+
+//   SQLite
 import { openDatabaseAsync } from 'expo-sqlite';
 
 let db;
@@ -20,7 +22,7 @@ export const initializeDatabase = async () => {
         description TEXT NOT NULL,
         budget NUMBER NOT NULL,
         status TEXT NOT NULL,
-        priority TEXT NOT NULL,
+        priority TEXT NOT NULL
       );
     `);
 
@@ -31,6 +33,7 @@ export const initializeDatabase = async () => {
     throw new Error('Failed to initialize database');
   }
 };
+// ENDS
 
 
 

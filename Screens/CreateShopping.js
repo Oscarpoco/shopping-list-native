@@ -1,9 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, TextInput, View, Pressable, FlatList, Modal } from 'react-native';
 
 // REDUX
-import { connect } from 'react-redux';
+import { connect, useDispatch, useSelector } from 'react-redux';
 import { addItem, deleteItem, saveList, setError, setSuccess } from '../Redux/actions';
+import { fetchLists } from '../Redux/actions';
+
+// DATABASE
+import { addList, getAllLists, initializeDatabase } from '../Database/sql.js';
 
 // PICKER
 import { Picker } from '@react-native-picker/picker';
@@ -11,26 +15,43 @@ import { Picker } from '@react-native-picker/picker';
 // ICONS
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
-const CreateScreen = ({
-  items,
-  addItem,
-  deleteItem,
-  saveList,
-  setError,
-  setSuccess,
-  shoppingList
-}) => {
+const CreateScreen = ({ items, addItem, deleteItem, saveList, setError, setSuccess }) => {
+  const dispatch = useDispatch();
 
-  // LOCAL USE STATE
+  const shoppingList = useSelector(state => state.shoppingList); 
+  const lists = useSelector(state => state.lists); 
+
+  // LOCAL STATE
   const [inputValue, setInputValue] = useState('');
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [listTitle, setlistTitle] = useState('');
-  const [listTag, setlistTag] = useState('');
+  const [listTitle, setListTitle] = useState('');
+  const [listTag, setListTag] = useState('');
   const [description, setDescription] = useState('');
   const [confirm, setConfirm] = useState(false);
   const [priority, setPriority] = useState('Low');
   const [budget, setBudget] = useState(1);
-  // ENDS
+
+  // INITIALIZE DATABASE
+ useEffect(() => {
+  const setupDatabase = async () => {
+    try {
+      const initialized = await initializeDatabase();
+      if (initialized) {
+        console.log('DATABASE INITIALIZED SUCCESSFULLY!');
+        const storedList = await getAllLists();
+        dispatch(fetchLists(storedList)); 
+      }
+      console.log('Overall Shopping list', lists)
+
+    } catch (error) {
+      Alert.alert('Database Error', error.message || 'Failed to initialize database', [
+        { text: 'OK' },
+      ]);
+    }
+  };
+
+  setupDatabase();
+}, [dispatch]);
 
   // HANDLE ADD ITEMS
   const handleAddItem = () => {
@@ -38,39 +59,66 @@ const CreateScreen = ({
       setError('Item cannot be empty');
     } else {
       addItem(inputValue.trim());
-      setError(null); 
+      setError(null);
       setSuccess('Item added successfully');
-      console.log('Item added successfully', items);
       setInputValue('');
     }
   };
-  // ENDS
-
 
   // HANDLE SAVE LIST
   const handleSaveAndReset = () => {
     if (!listTitle.trim()) {
-      setError('List Title cannot be empty');
+      dispatch(setError('List Title cannot be empty'));
       return;
     }
-  
-    saveList({ listTitle, listTag, description, priority, budget });
-    setSuccess(`List "${listTitle}" created successfully`);
-    console.log(
-      `List "${listTitle}" created with priority: ${priority} and budget: ${budget}`
-    );
-    setlistTitle('');
-    setlistTag('');
+
+    dispatch(saveList({ listTitle, listTag, description, priority, budget }));
+    saveListToDatabase(listTitle, listTag, description, priority, budget, items);
+
+    dispatch(setSuccess(`List "${listTitle}" created successfully`));
+    setListTitle('');
+    setListTag('');
     setDescription('');
     setPriority('Low');
-    setBudget(1); 
+    setBudget(1);
     setConfirm(false);
     setIsModalVisible(false);
   };
 
-  // ENDS
+  // SAVE LIST TO DATABASE
+  const saveListToDatabase = async (listTitle, listTag, description, priority, budget, items) => {
+    try {
+      if (!listTitle || !listTag || !items || !budget) {
+        throw new Error('Missing required fields');
+      }
+
+      const timestamp = new Date().toISOString();
+      const status = 'active'; 
+
+      const newListId = await addList(
+        listTitle,
+        timestamp,
+        listTag,
+        JSON.stringify(items),
+        description,
+        budget,
+        status,
+        priority
+      );
+
+      console.log('List saved with ID:', newListId);
+
+      // Fetch updated lists and update Redux state
+      const updatedLists = await getAllLists();
+      dispatch(fetchLists(updatedLists));
+    } catch (error) {
+      console.error('Error saving list:', error);
+      dispatch(setError(error.message || 'Error saving the list'));
+    }
+  };
 
   console.log('Shopping list', shoppingList)
+  console.log('Overall Shopping list', lists)
 
   // RENDER ITEMS
   const renderItem = ({ item, index }) => (
@@ -81,7 +129,6 @@ const CreateScreen = ({
       </Pressable>
     </View>
   );
-  // ENDS
 
   return (
     <View style={styles.Parent}>
@@ -128,25 +175,23 @@ const CreateScreen = ({
             <View style={styles.modalContent}>
               <Text style={styles.modalTitle}>Add New Item</Text>
 
-              <TextInput 
-                style={styles.modalInput} 
-                placeholder="List Title" 
-                value={listTitle} 
-                onChangeText={setlistTitle} 
+              <TextInput
+                style={styles.modalInput}
+                placeholder="List Title"
+                value={listTitle}
+                onChangeText={setListTitle}
               />
-
-              <TextInput 
-                style={styles.modalInput} 
-                placeholder="Item Tag (Optional)" 
-                value={listTag} 
-                onChangeText={setlistTag} 
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Item Tag (Optional)"
+                value={listTag}
+                onChangeText={setListTag}
               />
-
-              <TextInput 
-                style={styles.modalInput} 
-                placeholder="Description (Optional)" 
-                value={description} 
-                onChangeText={setDescription} 
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Description (Optional)"
+                value={description}
+                onChangeText={setDescription}
               />
 
               <TextInput
@@ -161,7 +206,6 @@ const CreateScreen = ({
                 keyboardType="numeric"
               />
 
-              {/* THE DROPVDOWN FOR PRIORITY  */}
               <Text style={styles.modalLabel}>Set Priority:</Text>
               <Picker
                 selectedValue={priority}
@@ -174,16 +218,13 @@ const CreateScreen = ({
               </Picker>
 
               {confirm ? (
-                <View style= {{flexDirection: 'column', padding: 10, backgroundColor: '#f5f5ff', justifyContent: 'center', alignItems: 'center', gap: 15, borderRadius: 5, flexDirection: 'column'}}>
-                  <Text style={[{textTransform: 'uppercase', color: '#333', width: '100%'}]}>Are you sure you want to save?</Text>
-                  <View style={styles.modalButtonContainer}>
-                    <Pressable style={styles.modalCancelButton} onPress={() => setConfirm(false)}>
-                      <Text>No</Text>
-                    </Pressable>
-                    <Pressable style={styles.modalAddButton} onPress={handleSaveAndReset}>
-                      <Text>Yes</Text>
-                    </Pressable>
-                  </View>
+                <View style={styles.modalButtonContainer}>
+                  <Pressable style={styles.modalCancelButton} onPress={() => setConfirm(false)}>
+                    <Text>No</Text>
+                  </Pressable>
+                  <Pressable style={styles.modalAddButton} onPress={handleSaveAndReset}>
+                    <Text>Yes</Text>
+                  </Pressable>
                 </View>
               ) : (
                 <View style={styles.modalButtonContainer}>
@@ -202,7 +243,6 @@ const CreateScreen = ({
     </View>
   );
 };
-
 
 const mapStateToProps = (state) => ({
   items: state.items,
