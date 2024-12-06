@@ -1,33 +1,55 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, Text, View, Pressable, FlatList } from 'react-native';
 import { useSelector } from 'react-redux';
 
 // ICONS
-import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const ListScreen = ({ navigation }) => {
-  const lists = useSelector(state => state.lists); 
+  const lists = useSelector((state) => state.lists);
+  const [activeFilter, setActiveFilter] = useState('All Lists');
+
+  // Filter lists based on the active filter
+  const filteredLists = lists.filter((item) => {
+    switch (activeFilter) {
+      case 'to-shop':
+        return item.status === 'to-shop'; 
+      case 'in-progress':
+        return item.status === 'in-progress'; 
+      case 'done':
+        return item.status === 'done'; 
+      default:
+        return true; 
+    }
+  });
 
   // Render each shopping list item
   const renderListItem = ({ item }) => {
-    const { listTitle, description, timestamp, priority } = item;
+    const { listTitle, description, timestamp, priority, status } = item;
 
-    // Assign a background color based on priority
     const backgroundColor =
       priority === 'High' ? '#E4516E' :
       priority === 'Medium' ? '#5D6DFF' :
-      '#1DBD84'; 
+      '#1DBD84';
 
     return (
       <Pressable style={[styles.secondSiblingItem, { backgroundColor }]}>
         <Text style={styles.lastChildTextTitle}>{listTitle || 'Untitled List'}</Text>
         <Text style={styles.lastChildTextDescription}>{description || 'No description provided'}</Text>
         <Text style={styles.lastChildTextDate}>Created on {new Date(timestamp).toDateString()}</Text>
+        <Text style={styles.lastChildTextDate}>On {status || 'No Status'}</Text>
       </Pressable>
     );
   };
+
+  // Sidebar button data
+  const sidebarButtons = [
+    { key: 'All Lists', icon: 'shopping-basket', color: '#444' },
+    { key: 'to-shop', icon: 'shopping-bag', color: '#FFA1AE' },
+    { key: 'in-progress', icon: 'shopping-cart', color: '#F6C92F' },
+    { key: 'done', icon: 'shopify', color: '#1DBD84' },
+  ];
 
   return (
     <View style={styles.Parent}>
@@ -35,14 +57,26 @@ const ListScreen = ({ navigation }) => {
       <View style={styles.main}>
         {/* HEADER */}
         <View style={styles.firstChild}>
-          <Text style={styles.firstChildText}>To-Shop</Text>
-          <Feather name="shopping-bag" size={25} color="#FFA1AE" />
+        <Text style={styles.firstChildText}>{activeFilter}</Text>
+        <MaterialIcons
+            name={
+                activeFilter === 'All Lists'
+                ? 'shopping-basket'
+                : activeFilter === 'to-shop'
+                ? 'shopping-bag'
+                : activeFilter === 'in-progress'
+                ? 'shopping-cart'
+                : 'shopify'
+            }
+            size={25}
+            color={activeFilter.color}
+            />
         </View>
 
         {/* LISTS */}
         <View style={styles.secondChild}>
           <FlatList
-            data={lists}
+            data={filteredLists}
             renderItem={renderListItem}
             keyExtractor={(item, index) => index.toString()}
             contentContainerStyle={{ paddingBottom: 20 }}
@@ -64,24 +98,33 @@ const ListScreen = ({ navigation }) => {
       {/* SIDEBAR */}
       <View style={styles.sideBar}>
         <View style={styles.sideBarChild}>
-          {[
-            // { name: 'clipboard-list', color: '#444' },
-            { name: 'shopping-bag', color: '#FFA1AE' },
-            { name: 'shopping-cart', color: '#F6C92F' },
-            { name: 'shopify', color: '#1DBD84' },
-            { name: 'home', color: '#333' },
-          ].map((icon, index) => (
-            <View style={styles.sideBarMenu} key={index}>
+          {sidebarButtons.map((button) => (
+            <View style={[styles.sideBarMenu, activeFilter === button.key && { backgroundColor: '#FFD700' },]} key={button.key}>
+              <Pressable
+                style={[
+                  styles.sideBarMenuButton,
+                   
+                ]}
+                onPress={() => setActiveFilter(button.key)}
+              >
+                <MaterialIcons name={button.icon} size={30} color={button.color} />
+              </Pressable>
+
               <Pressable
                 style={styles.sideBarMenuButton}
                 onPress={() => navigation.navigate('Home')}
-              >
-                <View style={styles.fourthChildIconWrapper}>
-                  <MaterialIcons name={icon.name} size={30} color={icon.color} />
-                </View>
-              </Pressable>
+              ></Pressable>
+              
             </View>
           ))}
+
+            <View style={styles.sideBarMenu}>
+                <Pressable style={styles.sideBarMenuButton} onPress={() => navigation.navigate('Home')}>
+                    <View style={[styles.fourthChildIconWrapper]}>
+                        <MaterialIcons name='home' size={30} color='#333'/>
+                    </View>
+                </Pressable>
+            </View>
         </View>
       </View>
     </View>
@@ -168,7 +211,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'center',
     flexDirection: 'row',
-    // backgroundColor: 'red',
     width: '100%',
     paddingVertical: 20,
     paddingHorizontal: 20,
@@ -179,7 +221,7 @@ const styles = StyleSheet.create({
     {
         fontSize: 24,
         fontWeight: 900,
-        letterSpacing: 3
+        letterSpacing: 1
     },
 // ENDS
     
