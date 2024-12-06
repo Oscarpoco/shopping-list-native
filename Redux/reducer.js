@@ -1,4 +1,4 @@
-import { ADD_ITEM, DELETE_ITEM, SET_ERROR, SET_SUCCESS , FETCH_LISTS, DELETE_LIST, UPDATE_LIST, SAVE_LIST} from './actions';
+import { ADD_ITEM, DELETE_ITEM, SET_ERROR, SET_SUCCESS , FETCH_LISTS, DELETE_LIST, UPDATE_LIST, SAVE_LIST, SET_ACTIVE_FILTER } from './actions';
 
 const initialState = {
   lists: [],
@@ -6,6 +6,7 @@ const initialState = {
   items: [],
   error: null,
   success: null,
+  activeFilter: 'All Lists',
 };
 
 const shoppingListReducer = (state = initialState, action) => {
@@ -90,6 +91,10 @@ const shoppingListReducer = (state = initialState, action) => {
         success: action.payload,
       };
     //   ENDS
+
+    // STATUS
+    case SET_ACTIVE_FILTER:
+      return { ...state, activeFilter: action.payload };
 
     default:
       return state;

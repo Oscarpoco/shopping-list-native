@@ -1,26 +1,29 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, Pressable, FlatList } from 'react-native';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { setActiveFilter } from '../Redux/actions';
 
 // ICONS
-import Feather from 'react-native-vector-icons/Feather';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const ListScreen = ({ navigation }) => {
   const lists = useSelector((state) => state.lists);
-  const [activeFilter, setActiveFilter] = useState('All Lists');
+  const dispatch = useDispatch();
+  const activeFilter = useSelector((state) => state.activeFilter);
+
+
 
   // Filter lists based on the active filter
   const filteredLists = lists.filter((item) => {
     switch (activeFilter) {
       case 'to-shop':
-        return item.status === 'to-shop'; 
+        return item.status === 'to-shop';
       case 'in-progress':
-        return item.status === 'in-progress'; 
+        return item.status === 'in-progress';
       case 'done':
-        return item.status === 'done'; 
+        return item.status === 'done';
       default:
-        return true; 
+        return true;
     }
   });
 
@@ -75,11 +78,16 @@ const ListScreen = ({ navigation }) => {
 
         {/* LISTS */}
         <View style={styles.secondChild}>
-          <FlatList
+        <FlatList
             data={filteredLists}
             renderItem={renderListItem}
             keyExtractor={(item, index) => index.toString()}
             contentContainerStyle={{ paddingBottom: 20 }}
+            ListEmptyComponent={
+              <View style={{ alignItems: 'center', marginTop: 20 }}>
+                <Text style={{ fontSize: 24, color: 'gray', letterSpacing: 2 }}>No items found!</Text>
+              </View>
+            }
           />
         </View>
 
@@ -98,23 +106,20 @@ const ListScreen = ({ navigation }) => {
       {/* SIDEBAR */}
       <View style={styles.sideBar}>
         <View style={styles.sideBarChild}>
-          {sidebarButtons.map((button) => (
-            <View style={[styles.sideBarMenu, activeFilter === button.key && { backgroundColor: '#FFD700' },]} key={button.key}>
+        {sidebarButtons.map((button) => (
+            <View
+              style={[
+                styles.sideBarMenu,
+                activeFilter === button.key && { backgroundColor: '#FFD700' },
+              ]}
+              key={button.key}
+            >
               <Pressable
-                style={[
-                  styles.sideBarMenuButton,
-                   
-                ]}
-                onPress={() => setActiveFilter(button.key)}
+                style={styles.sideBarMenuButton}
+                onPress={() => dispatch(setActiveFilter(button.key))}
               >
                 <MaterialIcons name={button.icon} size={30} color={button.color} />
               </Pressable>
-
-              <Pressable
-                style={styles.sideBarMenuButton}
-                onPress={() => navigation.navigate('Home')}
-              ></Pressable>
-              
             </View>
           ))}
 

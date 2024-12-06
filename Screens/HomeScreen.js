@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View, Pressable, TextInput } from 'react-native';
+import { StyleSheet, Text, View, Pressable, TextInput, FlatList } from 'react-native';
 
 // DATABASE
 import {
@@ -19,6 +19,7 @@ import { useEffect } from 'react';
 
 // REDUX
 import { useDispatch, useSelector } from 'react-redux';
+import { setActiveFilter } from '../Redux/actions.js';
 // ENDS
 
 // ICONS
@@ -55,7 +56,28 @@ const HomeScreen = ({ navigation }) => {
     setupDatabase();
   }, [dispatch]);
 
-  console.log('Overall Shopping list', lists)
+  console.log('Overall Shopping list', lists);
+
+  const renderListItem = ({ item }) => {
+    const { listTitle, description, timestamp, priority, status } = item;
+
+    const backgroundColor =
+      priority === 'High' ? '#E4516E' :
+      priority === 'Medium' ? '#5D6DFF' :
+      '#1DBD84';
+
+    return (
+      <Pressable
+        style={[styles.secondSiblingItem, { backgroundColor }]}
+        onPress={() => navigation.navigate('Details', { item })}
+      >
+        <Text style={styles.lastChildTextTitle}>{listTitle || 'Untitled List'}</Text>
+        <Text style={styles.lastChildTextDescription}>{description || 'No description provided'}</Text>
+        <Text style={styles.lastChildTextDate}>{new Date(timestamp).toDateString()}</Text>
+        {/* <Text style={styles.lastChildTextDate}>Status: {status || 'N/A'}</Text> */}
+      </Pressable>
+    );
+  };
 
 
 
@@ -113,27 +135,64 @@ const HomeScreen = ({ navigation }) => {
 
         {/* FOURTH */}
         <View style={styles.fourthChild}>
-            <Pressable style={styles.fourthChildButton} onPress={() => navigation.navigate('Shopping list')}>
-                <View style={[styles.fourthChildIconWrapper, {backgroundColor: '#F7E5E7', borderColor: '#E91E63'}]}>
-                    <Feather name='shopping-bag' size={30} color='#FFA1AE'/>
-                </View>
-                <Text style={styles.fourthChildText}>To-Shop</Text>
-            </Pressable>
+              {/* To-Shop Button */}
+              <Pressable
+                  style={styles.fourthChildButton}
+                  onPress={() => {
+                      dispatch(setActiveFilter('to-shop')); 
+                      navigation.navigate('Shopping list'); 
+                  }}
+              >
+                  <View
+                      style={[
+                          styles.fourthChildIconWrapper,
+                          { backgroundColor: '#F7E5E7', borderColor: '#E91E63' },
+                      ]}
+                  >
+                      <Feather name="shopping-bag" size={30} color="#FFA1AE" />
+                  </View>
+                  <Text style={styles.fourthChildText}>To-Shop</Text>
+              </Pressable>
 
-            <Pressable style={styles.fourthChildButton} onPress={() => navigation.navigate('Shopping list')}>
-                <View style={[styles.fourthChildIconWrapper, {backgroundColor: '#FFF4E0', borderColor: '#F39C12'}]}>
-                    <MaterialIcons name='shopping-cart' size={30} color='#F6C92F'/>
-                </View>
-                <Text style={styles.fourthChildText}>Progress</Text>
-            </Pressable>
+              {/* Progress Button */}
+              <Pressable
+                  style={styles.fourthChildButton}
+                  onPress={() => {
+                      dispatch(setActiveFilter('in-progress')); // Set the active filter in Redux
+                      navigation.navigate('Shopping list'); // Navigate to the Shopping List screen
+                  }}
+              >
+                  <View
+                      style={[
+                          styles.fourthChildIconWrapper,
+                          { backgroundColor: '#FFF4E0', borderColor: '#F39C12' },
+                      ]}
+                  >
+                      <MaterialIcons name="shopping-cart" size={30} color="#F6C92F" />
+                  </View>
+                  <Text style={styles.fourthChildText}>Progress</Text>
+              </Pressable>
 
-            <Pressable style={styles.fourthChildButton} onPress={() => navigation.navigate('Shopping list')}>
-                <View style={[styles.fourthChildIconWrapper, {backgroundColor: '#DAFEF2', borderColor: '#00B894'}]}>
-                    <MaterialIcons name='shopify' size={30} color='#1DBD84'/>
-                </View>
-                <Text style={styles.fourthChildText}>Done</Text>
-            </Pressable>
-        </View>
+              {/* Done Button */}
+              <Pressable
+                  style={styles.fourthChildButton}
+                  onPress={() => {
+                      dispatch(setActiveFilter('done')); // Set the active filter in Redux
+                      navigation.navigate('Shopping list'); // Navigate to the Shopping List screen
+                  }}
+              >
+                  <View
+                      style={[
+                          styles.fourthChildIconWrapper,
+                          { backgroundColor: '#DAFEF2', borderColor: '#00B894' },
+                      ]}
+                  >
+                      <MaterialIcons name="shopify" size={30} color="#1DBD84" />
+                  </View>
+                  <Text style={styles.fourthChildText}>Done</Text>
+              </Pressable>
+          </View>
+
         {/* ENDS */}
 
         {/* LAST */}
@@ -141,19 +200,16 @@ const HomeScreen = ({ navigation }) => {
             <Text style={styles.lastChildText}>Today's lists</Text>
 
             <View style={styles.secondSibling}>
-
-                <Pressable style={[styles.secondSiblingItem, {backgroundColor: '#5D6DFF'}]}>
-                    <Text style={styles.lastChildTextTitle}>Monthly Grocery</Text>
-                    <Text style={styles.lastChildTextDescription}>I have to buy grocery for my mom</Text>
-                    <Text style={styles.lastChildTextDate}>28 December 2024</Text>
-                </Pressable>
-
-                <Pressable style={[styles.secondSiblingItem, {backgroundColor: '#E4516E'}]}>
-                    <Text style={styles.lastChildTextTitle}>Monthly Grocery</Text>
-                    <Text style={styles.lastChildTextDescription}>I have to buy grocery for my mom</Text>
-                    <Text style={styles.lastChildTextDate}>28 December 2024</Text>
-                </Pressable>
-
+                <FlatList
+                    data={lists}
+                    renderItem={renderListItem}
+                    keyExtractor={(item, index) => index.toString()}
+                    ListEmptyComponent={
+                    <View style={styles.emptyContainer}>
+                        <Text style={styles.emptyText}>No items to display!</Text>
+                    </View>
+                    }
+                />
             </View>
         </View>
         {/* ENDS */}
@@ -174,7 +230,8 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     width: '100%',
     height: '100%',
-    paddingVertical: 20
+    paddingVertical: 20,
+    gap: 20
     },
 // ENDS
 
@@ -385,7 +442,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#f9f9f9',
     width: '100%',
-    paddingHorizontal: 20
+    height: 260,
+    paddingHorizontal: 20,
     },
 
     lastChildText: 
@@ -393,20 +451,21 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: '#333',
-    alignSelf: 'flex-start'
+    alignSelf: 'flex-start',
+    marginTop: 20,
     },
 
     secondSibling: 
     {
     width: '100%',
-    paddingVertical: 10,
+    paddingVertical: 20,
     borderRadius: 8,
     },
 
     secondSiblingItem: 
     {
     padding: 15,
-    marginVertical: 8,
+    marginVertical: 5,
     backgroundColor: '#f0f0f0',
     borderRadius: 8,
     elevation: 2, 
@@ -414,6 +473,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
+    height: '100'
     },
 
     lastChildTextTitle: 
@@ -421,7 +481,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: '#E0E0E0',
-    marginBottom: 5,
+    // marginBottom: 5,
     },
 
     lastChildTextDescription: 

@@ -11,6 +11,13 @@ export const UPDATE_LIST = 'UPDATE_LIST';
 export const SHARE_ITEM = 'SHARE_ITEM';
 export const SET_ERROR = 'SET_ERROR';
 export const SET_SUCCESS = 'SET_SUCCESS';
+export const SET_ACTIVE_FILTER = 'SET_ACTIVE_FILTER';
+
+export const setActiveFilter = (filter) => ({
+  type: SET_ACTIVE_FILTER,
+  payload: filter,
+});
+
 
 export const addItem = (item) => ({
   type: ADD_ITEM,

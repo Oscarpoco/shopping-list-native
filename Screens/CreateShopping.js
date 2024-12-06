@@ -4,7 +4,7 @@ import { StyleSheet, Text, TextInput, View, Pressable, FlatList, Modal } from 'r
 // REDUX
 import { connect, useDispatch, useSelector } from 'react-redux';
 import { addItem, deleteItem, saveList, setError, setSuccess } from '../Redux/actions';
-import { fetchLists } from '../Redux/actions';
+import { fetchLists, setActiveFilter  } from '../Redux/actions';
 
 // DATABASE
 import { addList, getAllLists, initializeDatabase } from '../Database/sql.js';
