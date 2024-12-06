@@ -1,7 +1,14 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, TextInput, View, Pressable, FlatList, Modal } from 'react-native';
+
+// REDUX
 import { connect } from 'react-redux';
 import { addItem, deleteItem, saveList, setError, setSuccess } from '../Redux/actions';
+
+// PICKER
+import { Picker } from '@react-native-picker/picker';
+
+// ICONS
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const CreateScreen = ({
@@ -13,32 +20,59 @@ const CreateScreen = ({
   setSuccess,
   shoppingList
 }) => {
+
+  // LOCAL USE STATE
   const [inputValue, setInputValue] = useState('');
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [listTitle, setlistTitle] = useState('');  
-  const [listTag, setlistTag] = useState('');  
-  const [description, setDescription] = useState('');  
+  const [listTitle, setlistTitle] = useState('');
+  const [listTag, setlistTag] = useState('');
+  const [description, setDescription] = useState('');
+  const [confirm, setConfirm] = useState(false);
+  const [priority, setPriority] = useState('Low');
+  const [budget, setBudget] = useState(1);
+  // ENDS
 
+  // HANDLE ADD ITEMS
   const handleAddItem = () => {
     if (inputValue.trim() === '') {
       setError('Item cannot be empty');
     } else {
       addItem(inputValue.trim());
+      setError(null); 
+      setSuccess('Item added successfully');
+      console.log('Item added successfully', items);
       setInputValue('');
     }
   };
+  // ENDS
 
-  const handleSave = () => {
+
+  // HANDLE SAVE LIST
+  const handleSaveAndReset = () => {
     if (!listTitle.trim()) {
-      setError('Please provide a list title');
-    } else {
-      saveList({ listTitle, listTag, description });
-      setSuccess("Created a list", shoppingList);
-      console.log("Created a list", shoppingList);
-      setIsModalVisible(false);
+      setError('List Title cannot be empty');
+      return;
     }
+  
+    saveList({ listTitle, listTag, description, priority, budget });
+    setSuccess(`List "${listTitle}" created successfully`);
+    console.log(
+      `List "${listTitle}" created with priority: ${priority} and budget: ${budget}`
+    );
+    setlistTitle('');
+    setlistTag('');
+    setDescription('');
+    setPriority('Low');
+    setBudget(1); 
+    setConfirm(false);
+    setIsModalVisible(false);
   };
 
+  // ENDS
+
+  console.log('Shopping list', shoppingList)
+
+  // RENDER ITEMS
   const renderItem = ({ item, index }) => (
     <View style={styles.listItem}>
       <Text style={styles.listItemText}>{index + 1}. {item}</Text>
@@ -47,6 +81,7 @@ const CreateScreen = ({
       </Pressable>
     </View>
   );
+  // ENDS
 
   return (
     <View style={styles.Parent}>
@@ -93,36 +128,73 @@ const CreateScreen = ({
             <View style={styles.modalContent}>
               <Text style={styles.modalTitle}>Add New Item</Text>
 
-              <TextInput
-                style={styles.modalInput}
-                placeholder="List Title"
-                value={listTitle}
-                onChangeText={setlistTitle}
+              <TextInput 
+                style={styles.modalInput} 
+                placeholder="List Title" 
+                value={listTitle} 
+                onChangeText={setlistTitle} 
               />
-              
-              <TextInput
-                style={styles.modalInput}
-                placeholder="Item Tag (Optional)"
-                value={listTag}
-                onChangeText={setlistTag}
-              />
-              
-              <TextInput
-                style={styles.modalInput}
-                placeholder="Description (Optional)"
-                value={description}
-                onChangeText={setDescription}
-              />
-              
-              <View style={styles.modalButtonContainer}>
-                <Pressable style={styles.modalCancelButton} onPress={() => setIsModalVisible(false)}>
-                  <Text style={styles.modalButtonText}>Cancel</Text>
-                </Pressable>
 
-                <Pressable style={styles.modalAddButton} onPress={handleSave}>
-                  <Text style={styles.modalButtonText}>Save</Text>
-                </Pressable>
-              </View>
+              <TextInput 
+                style={styles.modalInput} 
+                placeholder="Item Tag (Optional)" 
+                value={listTag} 
+                onChangeText={setlistTag} 
+              />
+
+              <TextInput 
+                style={styles.modalInput} 
+                placeholder="Description (Optional)" 
+                value={description} 
+                onChangeText={setDescription} 
+              />
+
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Budget (e.g., 5000)"
+                value={budget}
+                onChangeText={(value) => {
+                  if (/^\d*$/.test(value)) {
+                    setBudget(value);
+                  }
+                }}
+                keyboardType="numeric"
+              />
+
+              {/* THE DROPVDOWN FOR PRIORITY  */}
+              <Text style={styles.modalLabel}>Set Priority:</Text>
+              <Picker
+                selectedValue={priority}
+                onValueChange={(itemValue) => setPriority(itemValue)}
+                style={styles.modalPicker}
+              >
+                <Picker.Item label="Low" value="Low" />
+                <Picker.Item label="Medium" value="Medium" />
+                <Picker.Item label="High" value="High" />
+              </Picker>
+
+              {confirm ? (
+                <View style= {{flexDirection: 'column', padding: 10, backgroundColor: '#f5f5ff', justifyContent: 'center', alignItems: 'center', gap: 15, borderRadius: 5, flexDirection: 'column'}}>
+                  <Text style={[{textTransform: 'uppercase', color: '#333', width: '100%'}]}>Are you sure you want to save?</Text>
+                  <View style={styles.modalButtonContainer}>
+                    <Pressable style={styles.modalCancelButton} onPress={() => setConfirm(false)}>
+                      <Text>No</Text>
+                    </Pressable>
+                    <Pressable style={styles.modalAddButton} onPress={handleSaveAndReset}>
+                      <Text>Yes</Text>
+                    </Pressable>
+                  </View>
+                </View>
+              ) : (
+                <View style={styles.modalButtonContainer}>
+                  <Pressable style={styles.modalCancelButton} onPress={() => setIsModalVisible(false)}>
+                    <Text>Cancel</Text>
+                  </Pressable>
+                  <Pressable style={styles.modalAddButton} onPress={() => setConfirm(true)}>
+                    <Text>Save</Text>
+                  </Pressable>
+                </View>
+              )}
             </View>
           </View>
         </Modal>
@@ -130,6 +202,7 @@ const CreateScreen = ({
     </View>
   );
 };
+
 
 const mapStateToProps = (state) => ({
   items: state.items,
@@ -331,6 +404,24 @@ const styles = StyleSheet.create({
   {
     color: 'white',
     fontWeight: 'bold',
+  },
+
+  modalLabel: 
+  {
+    fontSize: 14,
+    color: 'rgba(0, 0, 0, .4)',
+    marginBottom: 8,
+    marginLeft: 5,
+    alignSelf: 'left',
+  },
+
+  modalPicker: 
+  {
+    height: 50,
+    width: '100%',
+    backgroundColor: '#f5f5ff',
+    borderRadius: 10,
+    marginBottom: 16,
   },
 //   ENDS
 });
