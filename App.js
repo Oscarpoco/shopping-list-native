@@ -10,6 +10,7 @@ import store from './Redux/store';
 import HomeScreen from './Screens/HomeScreen';
 import ListScreen from './Screens/List';
 import CreateScreen from './Screens/CreateShopping';
+import ListDetailsScreen from './Screens/ListDetailsScreen';
 
 const SettingsScreen = ({ navigation }) => (
   <View style={styles.container}>
@@ -30,6 +31,7 @@ export default function App() {
           <Stack.Screen name="Shopping list" component={ListScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Create Item" component={CreateScreen} />
           <Stack.Screen name="Settings" component={SettingsScreen} />
+          <Stack.Screen name="Details" component={ListDetailsScreen} />
         </Stack.Navigator>
         <StatusBar style="auto" />
       </NavigationContainer>

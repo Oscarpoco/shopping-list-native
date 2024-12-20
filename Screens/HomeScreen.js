@@ -1,503 +1,309 @@
 import React from 'react';
 import { StyleSheet, Text, View, Pressable, TextInput, FlatList } from 'react-native';
-
-// DATABASE
-import {
-    initializeDatabase,
-    addList,
-    getListById,
-    updateList,
-    deleteList,
-    getAllLists,
-  } from '../Database/sql.js';
-
-//   ENDS
-
-// REACT
-import { useEffect } from 'react';
-// ENDS
-
-// REDUX
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { setActiveFilter } from '../Redux/actions.js';
-// ENDS
 
-// ICONS
+// ACTIONS
+import { fetchLists } from '../Redux/actions.js';
+
+import {
+    initializeDatabase,
+    getAllLists,
+} from '../Database/sql.js';
+
 import Entypo from 'react-native-vector-icons/Entypo';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const HomeScreen = ({ navigation }) => {
+    const dispatch = useDispatch();
+    const lists = useSelector(state => state.lists) || [];
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
-    // INITIALIZE DATABASE
- const dispatch = useDispatch();
- const lists = useSelector(state => state.lists); 
+    useEffect(() => {
+        const setupDatabase = async () => {
+            try {
+                const initialized = await initializeDatabase();
+                if (initialized) {
+                    console.log('Database initialized successfully');
+                    const storedList = await getAllLists();
+                    dispatch(fetchLists(storedList));
+                }
+            } catch (error) {
+                console.error('Database initialization error:', error);
+            }
+        };
+        setupDatabase();
+    }, [dispatch]);
 
-
- // INITIALIZE DATABASE
- useEffect(() => {
-    const setupDatabase = async () => {
-      try {
-        const initialized = await initializeDatabase();
-        if (initialized) {
-          console.log('DATABASE INITIALIZED SUCCESSFULLY!');
-          const storedList = await getAllLists();
-          dispatch(fetchLists(storedList)); 
-        }
-        console.log('Overall Shopping list', lists)
-
-      } catch (error) {
-        Alert.alert('Database Error', error.message || 'Failed to initialize database', [
-          { text: 'OK' },
-        ]);
-      }
+    const renderListItem = ({ item }) => {
+        return (
+            <Pressable
+                style={[styles.listCard, { 
+                    backgroundColor: 
+                        item.priority === 'High' ? '#FF6B6B' :
+                        item.priority === 'Medium' ? '#4ECDC4' : '#45B7D1'
+                }]}
+                onPress={() => navigation.navigate('Details', { item })}
+            >
+                <View style={styles.listCardContent}>
+                    <Text style={styles.listTitle}>{item.listTitle || 'Untitled'}</Text>
+                    <Text style={styles.listDescription} numberOfLines={2}>
+                        {item.description || 'No description'}
+                    </Text>
+                    <Text style={styles.listDate}>
+                        {new Date(item.timestamp).toLocaleDateString()}
+                    </Text>
+                </View>
+                <View style={styles.listCardIcon}>
+                    <MaterialIcons name="keyboard-arrow-right" size={24} color="#fff" />
+                </View>
+            </Pressable>
+        );
     };
 
-    setupDatabase();
-  }, [dispatch]);
-
-  console.log('Overall Shopping list', lists);
-
-  const renderListItem = ({ item }) => {
-    const { listTitle, description, timestamp, priority, status } = item;
-
-    const backgroundColor =
-      priority === 'High' ? '#E4516E' :
-      priority === 'Medium' ? '#5D6DFF' :
-      '#1DBD84';
+    const CategoryButton = ({ icon, title, color, onPress }) => (
+        <Pressable style={[styles.categoryButton, { backgroundColor: color }]} onPress={onPress}>
+            <View style={[styles.categoryIcon, { backgroundColor: `${color}33` }]}>
+                {icon}
+            </View>
+            <Text style={styles.categoryText}>{title}</Text>
+        </Pressable>
+    );
 
     return (
-      <Pressable
-        style={[styles.secondSiblingItem, { backgroundColor }]}
-        onPress={() => navigation.navigate('Details', { item })}
-      >
-        <Text style={styles.lastChildTextTitle}>{listTitle || 'Untitled List'}</Text>
-        <Text style={styles.lastChildTextDescription}>{description || 'No description provided'}</Text>
-        <Text style={styles.lastChildTextDate}>{new Date(timestamp).toDateString()}</Text>
-        {/* <Text style={styles.lastChildTextDate}>Status: {status || 'N/A'}</Text> */}
-      </Pressable>
-    );
-  };
-
-
-
-  return (
-    <View style={styles.Parent}>
-
-        {/* FIRST */}
-        <View style={styles.firstChild}>
-
-            <Pressable style={styles.firstChildItem}>
-                <Entypo name='menu' size={30} />
-            </Pressable>
-
-            <Text style={[styles.secondChildLargeText, {marginBottom: 20, letterSpacing: 2}]}>Welcome back, Oscar!</Text>
-
-
-            <Pressable style={styles.firstChildUser}>
-                <Entypo name='user' size={25} />
-            </Pressable>
-            
-        </View>
-        {/* ENDS */}
-
-        {/* SECOND */}
-        <View style={styles.secondChild}>
-
-            <View style={[styles.secondChildSibling, {backgroundColor: '#f5f5ff'}]}>
-                <Text style={styles.secondChildLargeText}>You have 49 lists this month 🙂</Text>
-                <View style={[styles.fourthChildIconWrapper, {backgroundColor: '#F7E5E7', borderColor: '#E91E63'}]}>
-                    <Feather name='shopping-bag' size={30} color='#FFA1AE'/>
-                </View>
-            </View>
-
-            <View style={[styles.secondChildSibling, {backgroundColor: '#f5f5ff'}]}>
-                <Text style={styles.secondChildSmallText}>Want to add a list ?</Text>
-                <Pressable style={styles.secondChildButton} onPress={() => navigation.navigate('Create Item')}>
-                    <Text style={styles.secondChildButtonText}>Get Started</Text>
+        <View style={styles.container}>
+            <View style={styles.header}>
+                <Pressable style={styles.menuButton}>
+                    <Entypo name="menu" size={24} color="#333" />
+                </Pressable>
+                <Text style={styles.headerTitle}>Shopping Lists</Text>
+                <Pressable style={styles.profileButton}>
+                    <Entypo name="user" size={24} color="#333" />
                 </Pressable>
             </View>
-        </View>
-        {/* ENDS */}
 
-        {/* THIRD */}
-        <View style={styles.thirdChild}>
-            <View style={styles.firstSibling}>
-                <Feather name='search' size={30} color="#888" style={styles.icon}/>
+            <View style={styles.searchContainer}>
+                <Feather name="search" size={20} color="#666" />
                 <TextInput
-                    placeholder='Search shopping list by name'
-                    placeholderTextColor="#aaa"
-                    style={styles.SearchTextInput}
+                    style={styles.searchInput}
+                    placeholder="Search lists..."
+                    placeholderTextColor="#999"
                 />
             </View>
-        </View>
-        {/* ENDS */}
 
-        {/* FOURTH */}
-        <View style={styles.fourthChild}>
-              {/* To-Shop Button */}
-              <Pressable
-                  style={styles.fourthChildButton}
-                  onPress={() => {
-                      dispatch(setActiveFilter('to-shop')); 
-                      navigation.navigate('Shopping list'); 
-                  }}
-              >
-                  <View
-                      style={[
-                          styles.fourthChildIconWrapper,
-                          { backgroundColor: '#F7E5E7', borderColor: '#E91E63' },
-                      ]}
-                  >
-                      <Feather name="shopping-bag" size={30} color="#FFA1AE" />
-                  </View>
-                  <Text style={styles.fourthChildText}>To-Shop</Text>
-              </Pressable>
+            <View style={styles.statsContainer}>
+                <Text style={styles.statsText}>{lists.length} lists this month 📈</Text>
+                <Pressable 
+                    style={styles.addButton}
+                    onPress={() => navigation.navigate('Create Item')}
+                >
+                    <Text style={styles.addButtonText}>+ New List</Text>
+                </Pressable>
+            </View>
 
-              {/* Progress Button */}
-              <Pressable
-                  style={styles.fourthChildButton}
-                  onPress={() => {
-                      dispatch(setActiveFilter('in-progress')); // Set the active filter in Redux
-                      navigation.navigate('Shopping list'); // Navigate to the Shopping List screen
-                  }}
-              >
-                  <View
-                      style={[
-                          styles.fourthChildIconWrapper,
-                          { backgroundColor: '#FFF4E0', borderColor: '#F39C12' },
-                      ]}
-                  >
-                      <MaterialIcons name="shopping-cart" size={30} color="#F6C92F" />
-                  </View>
-                  <Text style={styles.fourthChildText}>Progress</Text>
-              </Pressable>
+            <View style={styles.categoriesContainer}>
+                <CategoryButton
+                    icon={<Feather name="shopping-bag" size={24} color="#FF6B6B" />}
+                    title="To Shop"
+                    color="#FFE3E3"
+                    onPress={() => {
+                        dispatch(setActiveFilter('to-shop'));
+                        navigation.navigate('Shopping list');
+                    }}
+                />
+                <CategoryButton
+                    icon={<MaterialIcons name="shopping-cart" size={24} color="#4ECDC4" />}
+                    title="Progress"
+                    color="#E8FFF9"
+                    onPress={() => {
+                        dispatch(setActiveFilter('in-progress'));
+                        navigation.navigate('Shopping list');
+                    }}
+                />
+                <CategoryButton
+                    icon={<MaterialIcons name="check-circle" size={24} color="#45B7D1" />}
+                    title="Done"
+                    color="#E3F6FF"
+                    onPress={() => {
+                        dispatch(setActiveFilter('done'));
+                        navigation.navigate('Shopping list');
+                    }}
+                />
+            </View>
 
-              {/* Done Button */}
-              <Pressable
-                  style={styles.fourthChildButton}
-                  onPress={() => {
-                      dispatch(setActiveFilter('done')); // Set the active filter in Redux
-                      navigation.navigate('Shopping list'); // Navigate to the Shopping List screen
-                  }}
-              >
-                  <View
-                      style={[
-                          styles.fourthChildIconWrapper,
-                          { backgroundColor: '#DAFEF2', borderColor: '#00B894' },
-                      ]}
-                  >
-                      <MaterialIcons name="shopify" size={30} color="#1DBD84" />
-                  </View>
-                  <Text style={styles.fourthChildText}>Done</Text>
-              </Pressable>
-          </View>
-
-        {/* ENDS */}
-
-        {/* LAST */}
-        <View style={styles.lastChild}>
-            <Text style={styles.lastChildText}>Today's lists</Text>
-
-            <View style={styles.secondSibling}>
-                <FlatList
-                    data={lists}
-                    renderItem={renderListItem}
-                    keyExtractor={(item, index) => index.toString()}
-                    ListEmptyComponent={
+            <FlatList
+                data={lists}
+                renderItem={renderListItem}
+                keyExtractor={(item, index) => index.toString()}
+                contentContainerStyle={styles.listContainer}
+                ListEmptyComponent={
                     <View style={styles.emptyContainer}>
-                        <Text style={styles.emptyText}>No items to display!</Text>
+                        <Text style={styles.emptyText}>No lists yet</Text>
+                        <Text style={styles.emptySubtext}>Create your first shopping list!</Text>
                     </View>
-                    }
-                />
-            </View>
+                }
+            />
         </View>
-        {/* ENDS */}
-      
-    </View>
-  );
+    );
 };
 
 const styles = StyleSheet.create({
-
-// PARENT
-    Parent: 
-    {
-    flex: 1,
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#f9f9f9',
-    flexDirection: 'column',
-    width: '100%',
-    height: '100%',
-    paddingVertical: 20,
-    gap: 20
+    container: {
+        flex: 1,
+        backgroundColor: '#F8F9FA',
     },
-// ENDS
-
-
-// FIRST
-    firstChild: 
-    {
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    width: '100%',
-    flexDirection: 'row',
-    height: 80,
-    paddingHorizontal: 20,
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 20,
+        paddingBottom: 10,
+        paddingTop: 40,
+        backgroundColor: '#fff',
+        elevation: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
     },
-
-    firstChildItem: 
-    {
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f5f5ff',
-    width: 50,
-    height: 50,
-    borderRadius: 15,
-    elevation: 4, 
-    shadowColor: '#000', 
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    headerTitle: {
+        fontSize: 20,
+        fontWeight: '700',
+        color: '#333',
     },
-
-    firstChildUser: 
-    {
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#DAFEF2',
-    width: 50,
-    height: 50,
-    borderRadius: 15,
-    elevation: 4, 
-    shadowColor: '#000', 
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
+    menuButton: {
+        padding: 8,
+        borderRadius: 12,
+        backgroundColor: '#F8F9FA',
     },
-
-    secondChildSmallText: 
-    {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
-    textTransform: 'uppercase',
-    textAlign: 'center'
+    profileButton: {
+        padding: 8,
+        borderRadius: 12,
+        backgroundColor: '#E3F6FF',
     },
-// ENDS
-    
-    
-// SECOND
-    secondChild: 
-    {
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    width: '100%',
-    flexDirection: 'row',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    gap: 10
+    searchContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+        margin: 20,
+        padding: 12,
+        borderRadius: 16,
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
     },
-
-    secondChildSibling: 
-    {
-    justifyContent: 'center',
-    alignItems: 'center', 
-    height: 160,
-    width: '48%',
-    borderRadius: 15,
-    elevation: 6, 
-    shadowColor: '#000', 
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    gap: 10,
-    padding: 10,
+    searchInput: {
+        flex: 1,
+        marginLeft: 10,
+        fontSize: 16,
+        color: '#333',
     },
-
-    secondChildLargeText: 
-    {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
-    textTransform: 'uppercase',
-    textAlign: 'center'
+    statsContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        marginBottom: 20,
     },
-
-    secondChildButton: 
+    statsText: 
     {
-    borderWidth: 1,
-    borderColor: '#00B894',
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center'
+        fontSize: 18,
+        fontWeight: '500',
+        color: '#333',
+        letterSpacing: 1
     },
-
-    secondChildButtonText: 
-    {
-    fontWeight: 900,
-    fontSize: 16,
-    color: '#333',
+    addButton: {
+        backgroundColor: '#45B7D1',
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+        borderRadius: 12,
+        elevation: 2,
     },
-// ENDS
-    
-    
-// THIRD
-    thirdChild: 
-    {
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f9f9f9',
-    width: '100%',
-    paddingHorizontal: 20,
+    addButtonText: {
+        color: '#fff',
+        fontWeight: '600',
     },
-
-    firstSibling:
-    {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f5f5ff',
-    borderRadius: 8,
-    paddingVertical: 5,
-    paddingHorizontal: 15,
-    width: '100%',
-    alignSelf: 'center',
-    elevation: 2, 
-    shadowColor: '#000', 
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    categoriesContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingHorizontal: 20,
+        marginBottom: 20,
     },
-
-      
-    icon: 
-    {
-    marginRight: 10, 
+    categoryButton: {
+        flex: 1,
+        marginHorizontal: 6,
+        padding: 16,
+        borderRadius: 16,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
-
-    textInput: 
-    {
-    flex: 1, 
-    fontSize: 16,
-    color: '#333',
+    categoryIcon: {
+        padding: 12,
+        borderRadius: 12,
+        marginBottom: 8,
     },
-// ENDS
-    
-    
-// FOURTH
-    fourthChild: 
-    {
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    backgroundColor: '#f9f9f9',
-    width: '100%',
-    flexDirection: 'row',
-    paddingHorizontal: 20,
+    categoryText: {
+        fontSize: 12,
+        fontWeight: '600',
+        color: '#333',
     },
-
-    fourthChildButton: 
-    {
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 10,
-    backgroundColor: '#f5f5ff',
-    borderRadius: 8,
-    elevation: 3, 
-    shadowColor: '#000', 
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    width: 100,
-    height: 120,
-    gap: 10
+    listContainer: {
+        padding: 20,
     },
-
-    fourthChildText:    
-    {
-    fontSize: 14,
-    fontWeight: '900',
-    color: '#333',
-    letterSpacing: 1
+    listCard: {
+        flexDirection: 'row',
+        backgroundColor: '#fff',
+        borderRadius: 16,
+        marginBottom: 16,
+        padding: 16,
+        elevation: 3,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
     },
-
-    fourthChildIconWrapper:    
-    {
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: 50,
-    height: 50,
-    borderWidth: 1,
-    borderRadius: 35
+    listCardContent: {
+        flex: 1,
     },
-// ENDS
-    
-    
-// LAST
-    lastChild: 
-    {
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f9f9f9',
-    width: '100%',
-    height: 260,
-    paddingHorizontal: 20,
+    listCardIcon: {
+        justifyContent: 'center',
     },
-
-    lastChildText: 
-    {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-    alignSelf: 'flex-start',
-    marginTop: 20,
+    listTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#fff',
+        marginBottom: 8,
     },
-
-    secondSibling: 
-    {
-    width: '100%',
-    paddingVertical: 20,
-    borderRadius: 8,
+    listDescription: {
+        fontSize: 14,
+        color: '#fff',
+        opacity: 0.9,
+        marginBottom: 8,
     },
-
-    secondSiblingItem: 
-    {
-    padding: 15,
-    marginVertical: 5,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 8,
-    elevation: 2, 
-    shadowColor: '#000', 
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    height: '100'
+    listDate: {
+        fontSize: 12,
+        color: '#fff',
+        opacity: 0.8,
     },
-
-    lastChildTextTitle: 
-    {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#E0E0E0',
-    // marginBottom: 5,
+    emptyContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 40,
     },
-
-    lastChildTextDescription: 
-    {
-    fontSize: 14,
-    color: '#E0E0E0',
-    marginBottom: 8,
+    emptyText: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#666',
+        marginBottom: 8,
     },
-
-    lastChildTextDate: 
-    {
-    fontSize: 12,
-    color: '#E0E0E0',
+    emptySubtext: {
+        fontSize: 14,
+        color: '#999',
     },
-// ENDS
- 
 });
 
 export default HomeScreen;

@@ -1,19 +1,40 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, Pressable, FlatList } from 'react-native';
+import { 
+  StyleSheet, 
+  Text, 
+  View, 
+  Pressable, 
+  FlatList,
+  Animated,
+  TouchableOpacity,
+  Platform
+} from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { setActiveFilter } from '../Redux/actions';
-
-// ICONS
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const ListScreen = ({ navigation }) => {
   const lists = useSelector((state) => state.lists);
   const dispatch = useDispatch();
   const activeFilter = useSelector((state) => state.activeFilter);
+  const [scaleAnim] = useState(new Animated.Value(1));
 
+  // Animation for button press
+  const animatePress = () => {
+    Animated.sequence([
+      Animated.timing(scaleAnim, {
+        toValue: 0.95,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
 
-
-  // Filter lists based on the active filter
   const filteredLists = lists.filter((item) => {
     switch (activeFilter) {
       case 'to-shop':
@@ -27,110 +48,135 @@ const ListScreen = ({ navigation }) => {
     }
   });
 
-  // Render each shopping list item
   const renderListItem = ({ item }) => {
     const { listTitle, description, timestamp, priority, status } = item;
 
-    const backgroundColor =
-      priority === 'High' ? '#E4516E' :
-      priority === 'Medium' ? '#5D6DFF' :
-      '#1DBD84';
+    const priorityColors = {
+      High: '#FF6B6B',
+      Medium: '#4ECDC4',
+      Low: '#45B7D1'
+    };
+
+    const statusIcons = {
+      'to-shop': 'shopping-bag',
+      'in-progress': 'shopping-cart',
+      'done': 'check-circle'
+    };
 
     return (
-      <Pressable style={[styles.secondSiblingItem, { backgroundColor }]}>
-        <Text style={styles.lastChildTextTitle}>{listTitle || 'Untitled List'}</Text>
-        <Text style={styles.lastChildTextDescription}>{description || 'No description provided'}</Text>
-        <Text style={styles.lastChildTextDate}>Created on {new Date(timestamp).toDateString()}</Text>
-        <Text style={styles.lastChildTextDate}>On {status || 'No Status'}</Text>
-      </Pressable>
+      <Animated.View style={[styles.listItem, { transform: [{ scale: scaleAnim }] }]}>
+        <TouchableOpacity 
+          style={[styles.listItemContent, { borderLeftColor: priorityColors[priority] }]}
+          onPress={() => {
+            animatePress();
+            navigation.navigate('Details', {item});
+          }}
+        >
+          <View style={styles.listItemHeader}>
+            <Text style={styles.listItemTitle}>{listTitle || 'Untitled List'}</Text>
+            <MaterialIcons 
+              name={statusIcons[status]} 
+              size={24} 
+              color={priorityColors[priority]} 
+            />
+          </View>
+          
+          <Text style={styles.listItemDescription}>{description || 'No description provided'}</Text>
+          
+          <View style={styles.listItemFooter}>
+            <Text style={styles.listItemDate}>
+              {new Date(timestamp).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+              })}
+            </Text>
+            <View style={[styles.priorityBadge, { backgroundColor: priorityColors[priority] }]}>
+              <Text style={styles.priorityText}>{priority}</Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Animated.View>
     );
   };
 
-  // Sidebar button data
   const sidebarButtons = [
-    { key: 'All Lists', icon: 'shopping-basket', color: '#444' },
-    { key: 'to-shop', icon: 'shopping-bag', color: '#FFA1AE' },
-    { key: 'in-progress', icon: 'shopping-cart', color: '#F6C92F' },
-    { key: 'done', icon: 'shopify', color: '#1DBD84' },
+    { key: 'All Lists', icon: 'dashboard', color: '#444', label: 'All' },
+    { key: 'to-shop', icon: 'shopping-bag', color: '#FFA1AE', label: 'To Shop' },
+    { key: 'in-progress', icon: 'shopping-cart', color: '#F6C92F', label: 'Shopping' },
+    { key: 'done', icon: 'check-circle', color: '#1DBD84', label: 'Done' },
   ];
 
   return (
-    <View style={styles.Parent}>
-      {/* MAIN */}
-      <View style={styles.main}>
-        {/* HEADER */}
-        <View style={styles.firstChild}>
-        <Text style={styles.firstChildText}>{activeFilter}</Text>
-        <MaterialIcons
-            name={
-                activeFilter === 'All Lists'
-                ? 'shopping-basket'
-                : activeFilter === 'to-shop'
-                ? 'shopping-bag'
-                : activeFilter === 'in-progress'
-                ? 'shopping-cart'
-                : 'shopify'
-            }
-            size={25}
-            color={activeFilter.color}
-            />
+    <View style={styles.container}>
+      {/* Sidebar */}
+      <View style={styles.sidebar}>
+        <View style={styles.sidebarContent}>
+          {sidebarButtons.map((button) => (
+            <TouchableOpacity
+              key={button.key}
+              style={[
+                styles.sidebarButton,
+                activeFilter === button.key && styles.sidebarButtonActive
+              ]}
+              onPress={() => dispatch(setActiveFilter(button.key))}
+            >
+              <MaterialIcons name={button.icon} size={24} color={activeFilter === button.key ? '#FFF' : button.color} />
+              <Text style={[
+                styles.sidebarButtonLabel,
+                activeFilter === button.key && styles.sidebarButtonLabelActive
+              ]}>
+                {button.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
-
-        {/* LISTS */}
-        <View style={styles.secondChild}>
-        <FlatList
-            data={filteredLists}
-            renderItem={renderListItem}
-            keyExtractor={(item, index) => index.toString()}
-            contentContainerStyle={{ paddingBottom: 20 }}
-            ListEmptyComponent={
-              <View style={{ alignItems: 'center', marginTop: 20 }}>
-                <Text style={{ fontSize: 24, color: 'gray', letterSpacing: 2 }}>No items found!</Text>
-              </View>
-            }
-          />
-        </View>
-
-        {/* ADD NEW LIST */}
-        <View style={styles.lastChild}>
-          <Pressable
-            style={styles.lastChildAddButton}
-            onPress={() => navigation.navigate('Create Item')}
-          >
-            <MaterialIcons name="add" size={25} color="#1DBD84" />
-            <Text style={styles.lastChildText}>Add New List</Text>
-          </Pressable>
-        </View>
+        
+        <TouchableOpacity 
+          style={styles.homeButton}
+          onPress={() => navigation.navigate('Home')}
+        >
+          <MaterialIcons name="home" size={24} color="#333" />
+        </TouchableOpacity>
       </View>
 
-      {/* SIDEBAR */}
-      <View style={styles.sideBar}>
-        <View style={styles.sideBarChild}>
-        {sidebarButtons.map((button) => (
-            <View
-              style={[
-                styles.sideBarMenu,
-                activeFilter === button.key && { backgroundColor: '#FFD700' },
-              ]}
-              key={button.key}
-            >
-              <Pressable
-                style={styles.sideBarMenuButton}
-                onPress={() => dispatch(setActiveFilter(button.key))}
-              >
-                <MaterialIcons name={button.icon} size={30} color={button.color} />
-              </Pressable>
-            </View>
-          ))}
-
-            <View style={styles.sideBarMenu}>
-                <Pressable style={styles.sideBarMenuButton} onPress={() => navigation.navigate('Home')}>
-                    <View style={[styles.fourthChildIconWrapper]}>
-                        <MaterialIcons name='home' size={30} color='#333'/>
-                    </View>
-                </Pressable>
-            </View>
+      {/* Main Content */}
+      <View style={styles.main}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>{activeFilter}</Text>
+          <View style={styles.headerIconContainer}>
+            <MaterialIcons
+              name={sidebarButtons.find(btn => btn.key === activeFilter)?.icon || 'dashboard'}
+              size={24}
+              color="#333"
+            />
+          </View>
         </View>
+
+        {/* List Content */}
+        <FlatList
+          data={filteredLists}
+          renderItem={renderListItem}
+          keyExtractor={(item, index) => index.toString()}
+          contentContainerStyle={styles.listContainer}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <MaterialIcons name="shopping-basket" size={48} color="#DDD" />
+              <Text style={styles.emptyText}>No items found</Text>
+            </View>
+          }
+        />
+
+        {/* Add Button */}
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => navigation.navigate('Create Item')}
+        >
+          <MaterialIcons name="add" size={24} color="#FFF" />
+          <Text style={styles.addButtonText}>Add New List</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -138,195 +184,248 @@ const ListScreen = ({ navigation }) => {
 
 const styles = StyleSheet.create({
 
-    // PARENT
-    Parent: 
-    {
+  container: 
+  {
     flex: 1,
-    justifyContent: 'space-between',
-    alignItems: 'center',
     flexDirection: 'row',
-    backgroundColor: '#f9f9f9',
-    padding: 0,
-    margin: 0,
-    },
-    // ENDS
+    backgroundColor: '#F8F9FA',
+  },
+  
+  // SIDE STYLES
+  sidebar: 
+  {
+    width: '25%',
+    backgroundColor: '#FFFFFF',
+    borderRightWidth: 1,
+    borderRightColor: '#E9ECEF',
+    padding: 5,
+    justifyContent: 'space-between',
 
-    // SIDEBAR
-    sideBar: 
-    {
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#232429',
-    width: '21.4%',
-    height: '100%',
-    },
+    ...Platform.select({
+      ios: 
+      {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+      android: 
+      {
+        elevation: 4,
+      },
+    }),
+  },
 
-    sideBarChild: 
-    {
-    justifyContent: 'center',
-    alignItems: 'center',
+  sidebarContent: 
+  {
+    flex: 1,
+    gap: 25,
+    marginTop: 50,
+  },
+
+  sidebarButton: 
+  {
     flexDirection: 'column',
-    width: '100%',
-    height: '100%',
-    gap: 30,
-    backgroundColor: '#1DBD84',
-    },
-
-    sideBarMenu: 
-    {
-    justifyContent: 'center',
     alignItems: 'center',
     padding: 10,
-    backgroundColor: '#f5f5ff',
-    borderRadius: 5,
-    elevation: 3, 
-    shadowColor: '#000', 
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    width: 50,
-    height: 50,
-    gap: 10
-    },
+    borderRadius: 12,
+    backgroundColor: '#d3ddda',
+  },
 
-    sideBarMenuButton: 
-    {
-    
-    },
-    // ENDS
+  sidebarButtonActive: 
+  {
+    backgroundColor: '#6C63FF',
+  },
 
+  sidebarButtonLabel: 
+  {
+    marginTop: 4,
+    fontSize: 12,
+    color: '#666',
+    fontWeight: '600',
+    letterSpacing: 1
+  },
 
-    // MAIN 
-    main: 
-    {
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    flexDirection: 'column',
-    backgroundColor: '#f9f9f9',
-    width: '78.6%',
-    height: '100%',
-    paddingTop: 40
-    },
+  sidebarButtonLabelActive: 
+  {
+    color: '#FFF',
+  },
 
-
-
-// FIRST
-    firstChild: 
-    {
-    justifyContent: 'flex-start',
+  homeButton: 
+  {
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: '#d3ddda',
     alignItems: 'center',
-    flexDirection: 'row',
-    width: '100%',
-    paddingVertical: 20,
-    paddingHorizontal: 20,
-    gap: 10
-    },
+  },
 
-    firstChildText: 
-    {
-        fontSize: 24,
-        fontWeight: 900,
-        letterSpacing: 1
-    },
-// ENDS
-    
-    
-// SECOND
-    secondChild: 
-    {
+  // MAIN STYLING
+  main: 
+  {
     flex: 1,
-    justifyContent: 'flex-start',
+    paddingHorizontal: 15,
+    paddingBottom: 5,
+    width: '75%',
+    paddingTop: 48,
+
+  },
+
+  header: 
+  {
+    flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f9f9f9',
-    width: '100%',
-    paddingHorizontal: 20
-    },
+    marginBottom: 24,
+    height: 50
+  },
 
-    lastChildText: 
-    {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-    alignSelf: 'flex-start'
-    },
+  headerTitle: 
+  {
+    fontSize: 25,
+    fontWeight: '700',
+    color: '#212529',
+    marginRight: 12,
+    padding: 0,
+    backgroundColor: '#F8F9FA',
+    letterSpacing: 1.5
+  },
 
-    secondSibling: 
-    {
-    width: '100%',
-    paddingVertical: 10,
-    borderRadius: 8,
-    },
+  headerIconContainer: 
+  {
+    backgroundColor: '#F8F9FA',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  
+  // LIST STYLE
+  listContainer: 
+  {
+    paddingBottom: 70,
+  },
 
-    secondSiblingItem: 
-    {
-    padding: 15,
-    marginVertical: 8,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 8,
-    elevation: 2, 
-    shadowColor: '#000', 
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    width: '100%',
-    },
+  listItem: 
+  {
+    marginBottom: 16,
+  },
 
-    lastChildTextTitle: 
-    {
+  listItemContent: 
+  {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    borderLeftWidth: 4,
+    ...Platform.select({
+      ios: 
+      {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+      },
+      android: 
+      {
+        elevation: 4,
+      },
+    }),
+  },
+
+  listItemHeader: 
+  {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+
+  listItemTitle: 
+  {
     fontSize: 18,
     fontWeight: '600',
-    color: '#E0E0E0',
-    marginBottom: 5,
-    },
+    color: '#212529',
+  },
 
-    lastChildTextDescription: 
-    {
+  listItemDescription: 
+  {
     fontSize: 14,
-    color: '#E0E0E0',
-    marginBottom: 8,
-    },
+    color: '#6C757D',
+    marginBottom: 16,
+  },
 
-    lastChildTextDate: 
-    {
-    fontSize: 12,
-    color: '#E0E0E0',
-    },
-// ENDS
-    
-    
-// LAST
-    lastChild: 
-    {
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f9f9f9',
-    width: '100%',
-    padding: 20,
-    },
-
-    lastChildAddButton:
-    {
-    width: '100%',
-    height: 50,
-    backgroundColor: '#A262EA',
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
+  listItemFooter: 
+  {
     flexDirection: 'row',
-    gap: 10
-    },
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
 
-    lastChildText:
-    {
-    textAlign: 'center',
-    textTransform: 'uppercase',
-    fontWeight: 900,
-    letterSpacing: 2
-    },
+  listItemDate: 
+  {
+    fontSize: 12,
+    color: '#ADB5BD',
+  },
+  priorityBadge: 
+  {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  priorityText: 
+  {
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: '500',
+  },
 
-    
-// ENDS
- 
+  // EMPTY CONTAINER
+  emptyContainer: 
+  {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 48,
+  },
+
+  emptyText: 
+  {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#ADB5BD',
+    fontWeight: '500',
+  },
+
+
+  addButton: 
+  {
+    position: 'absolute',
+    bottom: 24,
+    right: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#6C63FF',
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    borderRadius: 16,
+    ...Platform.select({
+      ios: 
+      {
+        shadowColor: '#6C63FF',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+      },
+      android: 
+      {
+        elevation: 8,
+      },
+    }),
+  },
+
+  addButtonText: 
+  {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
 });
 
 export default ListScreen;
