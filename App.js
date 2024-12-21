@@ -15,6 +15,9 @@ import ListScreen from './Screens/List';
 import CreateScreen from './Screens/CreateShopping';
 import ListDetailsScreen from './Screens/ListDetailsScreen';
 import ProfileScreen from './Screens/ProfileScreen';
+import SplashScreen from './Screens/SplashScreen';
+import LoginScreen from './Screens/LoginScreen';
+import RegisterScreen from './Screens/RegisterScreen';
 
 
 
@@ -25,13 +28,75 @@ export default function App() {
     <Provider store={store}> 
       <NavigationContainer>
         <Stack.Navigator>
+
+          {/* SPLASH SCREEN */}
+          <Stack.Screen name="Splash" component={SplashScreen} options={{ headerShown: false }} />
+
+          {/* AUTHENTICATION SCREENS */}
+          <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
+
+          {/* MAIN SCREENS */}
           <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Shopping list" component={ListScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="Create Item" component={CreateScreen} />
-          <Stack.Screen name="Profile" component={ProfileScreen} />
-          <Stack.Screen name="Details" component={ListDetailsScreen} />
+
+          <Stack.Screen name="Create Item" component={CreateScreen}
+            options={{
+              headerShown: true,
+              headerTitle: 'Create',
+              headerStyle: {
+                backgroundColor: '#6C63FF',
+              },
+              headerTitleStyle: {
+                color: '#fff',
+                fontSize: 18,
+                fontWeight: 'bold',
+                letterSpacing: 1
+              },
+              headerTintColor: '#fff',
+            }}
+          />
+
+          <Stack.Screen name="Profile" component={ProfileScreen}
+            options={{
+              headerShown: true,
+              headerTitle: 'Profile',
+              headerStyle: {
+                backgroundColor: '#6C63FF',
+              },
+              headerTitleStyle: {
+                color: '#fff',
+                fontSize: 18,
+                fontWeight: 'bold',
+                letterSpacing: 1
+              },
+              headerTintColor: '#fff',
+            }}
+          />
+
+          <Stack.Screen name="Details" component={ListDetailsScreen}
+            options={{
+              headerShown: true,
+              headerTitle: 'Details',
+              headerStyle: {
+                backgroundColor: '#6C63FF',
+              },
+              headerTitleStyle: {
+                color: '#fff',
+                fontSize: 18,
+                fontWeight: 'bold',
+                letterSpacing: 1
+              },
+              headerTintColor: '#fff',
+            }}
+          />
         </Stack.Navigator>
+
+
+        {/* STATUS BAR */}
         <StatusBar style="auto" />
+
+        {/* TOAST */}
         <View style={styles.toast}>
           <Toast />
         </View>

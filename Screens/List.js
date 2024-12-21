@@ -127,6 +127,7 @@ const ListScreen = ({ navigation }) => {
               ]}>
                 {button.label}
               </Text>
+              {activeFilter === button.key && <View style={styles.triangleCorner} />}
             </TouchableOpacity>
           ))}
         </View>
@@ -199,20 +200,6 @@ const styles = StyleSheet.create({
     borderRightColor: '#E9ECEF',
     padding: 5,
     justifyContent: 'space-between',
-
-    // ...Platform.select({
-    //   ios: 
-    //   {
-    //     shadowColor: '#000',
-    //     shadowOffset: { width: 0, height: 1 },
-    //     shadowOpacity: 0.1,
-    //     shadowRadius: 4,
-    //   },
-    //   android: 
-    //   {
-    //     elevation: 2,
-    //   },
-    // }),
   },
 
   sidebarContent: 
@@ -231,12 +218,26 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
 
-  sidebarButtonActive: 
-  {
+  sidebarButtonActive: {
     backgroundColor: '#6C63FF',
-    borderRadius: 0,
-    borderBottomLeftRadius: 35,
-    borderTopRightRadius: 35,
+    borderRadius: 12,
+  },
+  triangleCorner: {
+    position: 'absolute',
+    right: 0,
+    top: 25,
+    width: 0,
+    height: 0,
+    backgroundColor: 'transparent',
+    borderStyle: 'solid',
+    borderRightWidth: 30,
+    borderTopWidth: 30,
+    borderRightColor: '#6C63FF',
+    borderTopColor: 'transparent',
+    transform: [
+      { rotate: '-45deg' }, 
+      { translateX: 10 } 
+    ]
   },
 
   sidebarButtonLabel: 
@@ -267,7 +268,7 @@ const styles = StyleSheet.create({
   {
     flex: 1,
     paddingHorizontal: 15,
-    paddingBottom: 5,
+    paddingBottom: 10,
     width: '75%',
     paddingTop: 48,
 
@@ -326,7 +327,7 @@ const styles = StyleSheet.create({
       },
       android: 
       {
-        elevation: 4,
+        elevation: 1,
       },
     }),
   },
