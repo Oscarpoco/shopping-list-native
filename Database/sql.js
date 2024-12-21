@@ -112,7 +112,7 @@ export const updateList = async (id, listTitle, timestamp, listTag, items, descr
 
 
 // DELETE IMAGE FROM DATABASE
-export const deleteList = async (id) => {
+export const deleteListDatabase = async (id) => {
   try {
     if (!db) throw new Error('DATABASE NOT INITIALIZED');
   

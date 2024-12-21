@@ -3,7 +3,6 @@ import {
   StyleSheet, 
   Text, 
   View, 
-  Pressable, 
   FlatList,
   Animated,
   TouchableOpacity,
@@ -78,6 +77,7 @@ const ListScreen = ({ navigation }) => {
               name={statusIcons[status]} 
               size={24} 
               color={priorityColors[priority]} 
+              style={styles.headerTitleIcon}
             />
           </View>
           

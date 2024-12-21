@@ -72,7 +72,7 @@ const shoppingListReducer = (state = initialState, action) => {
     case DELETE_LIST:
       return {
         ...state,
-        shoppingList: state.shoppingList.filter((item) => item.id !== action.payload),
+        lists: state.lists.filter((item) => item.id !== action.payload),
       };
     //   ENDS
 

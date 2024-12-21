@@ -75,10 +75,10 @@ const HomeScreen = ({ navigation }) => {
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <Pressable style={styles.menuButton}>
-                    <Entypo name="menu" size={24} color="#333" />
-                </Pressable>
-                <Text style={styles.headerTitle}>Shopping Lists</Text>
+                <View style={styles.headerLeft}>
+                    <Text style={styles.headerTitle}>mShop</Text>
+                    <MaterialIcons name="shopping-cart" size={18} color="#FF6B6B" style={styles.headerTitleIcon} />
+                </View>
                 <Pressable style={styles.profileButton}>
                     <Entypo name="user" size={24} color="#333" />
                 </Pressable>
@@ -150,11 +150,14 @@ const HomeScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-    container: {
+    container: 
+    {
         flex: 1,
         backgroundColor: '#F8F9FA',
     },
-    header: {
+
+    header: 
+    {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -168,22 +171,45 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 8,
     },
-    headerTitle: {
+
+    headerLeft: 
+    {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 5
+    },
+
+    headerTitle: 
+    {
         fontSize: 20,
         fontWeight: '700',
         color: '#333',
+        letterSpacing: 1.5
     },
-    menuButton: {
+
+    headerTitleIcon: 
+    {
+        letterSpacing: 1.5,
+        marginTop: 7
+    },
+
+    menuButton: 
+    {
         padding: 8,
         borderRadius: 12,
         backgroundColor: '#F8F9FA',
     },
-    profileButton: {
+
+    profileButton: 
+    {
         padding: 8,
         borderRadius: 12,
         backgroundColor: '#E3F6FF',
     },
-    searchContainer: {
+
+    searchContainer: 
+    {
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: '#fff',
@@ -196,19 +222,24 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 4,
     },
-    searchInput: {
+
+    searchInput: 
+    {
         flex: 1,
         marginLeft: 10,
         fontSize: 16,
         color: '#333',
     },
-    statsContainer: {
+
+    statsContainer: 
+    {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: 20,
         marginBottom: 20,
     },
+
     statsText: 
     {
         fontSize: 18,
@@ -216,24 +247,32 @@ const styles = StyleSheet.create({
         color: '#333',
         letterSpacing: 1
     },
-    addButton: {
+
+    addButton: 
+    {
         backgroundColor: '#45B7D1',
         paddingVertical: 8,
         paddingHorizontal: 16,
         borderRadius: 12,
         elevation: 2,
     },
-    addButtonText: {
+
+    addButtonText: 
+    {
         color: '#fff',
         fontWeight: '600',
     },
-    categoriesContainer: {
+
+    categoriesContainer: 
+    {
         flexDirection: 'row',
         justifyContent: 'space-between',
         paddingHorizontal: 20,
         marginBottom: 20,
     },
-    categoryButton: {
+
+    categoryButton: 
+    {
         flex: 1,
         marginHorizontal: 6,
         padding: 16,
@@ -241,20 +280,28 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
-    categoryIcon: {
+
+    categoryIcon: 
+    {
         padding: 12,
         borderRadius: 12,
         marginBottom: 8,
     },
-    categoryText: {
+
+    categoryText: 
+    {
         fontSize: 12,
         fontWeight: '600',
         color: '#333',
     },
-    listContainer: {
+
+    listContainer: 
+    {
         padding: 20,
     },
-    listCard: {
+
+    listCard: 
+    {
         flexDirection: 'row',
         backgroundColor: '#fff',
         borderRadius: 16,
@@ -266,41 +313,57 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 8,
     },
-    listCardContent: {
+
+    listCardContent: 
+    {
         flex: 1,
     },
-    listCardIcon: {
+
+    listCardIcon: 
+    {
         justifyContent: 'center',
     },
-    listTitle: {
+
+    listTitle: 
+    {
         fontSize: 18,
         fontWeight: '700',
         color: '#fff',
         marginBottom: 8,
     },
-    listDescription: {
+
+    listDescription: 
+    {
         fontSize: 14,
         color: '#fff',
         opacity: 0.9,
         marginBottom: 8,
     },
-    listDate: {
+
+    listDate: 
+    {
         fontSize: 12,
         color: '#fff',
         opacity: 0.8,
     },
-    emptyContainer: {
+
+    emptyContainer: 
+    {
         alignItems: 'center',
         justifyContent: 'center',
         padding: 40,
     },
-    emptyText: {
+
+    emptyText: 
+    {
         fontSize: 18,
         fontWeight: '600',
         color: '#666',
         marginBottom: 8,
     },
-    emptySubtext: {
+
+    emptySubtext: 
+    {
         fontSize: 14,
         color: '#999',
     },

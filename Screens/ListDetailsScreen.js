@@ -1,19 +1,33 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   StyleSheet, 
   Text, 
   View, 
   ScrollView, 
   TouchableOpacity,
-  Platform
+  Platform,
+  ActivityIndicator
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
-const ListDetailsScreen = ({ route, navigation }) => {
-  const { item } = route.params;
-  const items = JSON.parse(item.items); // Parse the items string into array
+// ACTIONS
+import { deleteList, setError, setSuccess } from '../Redux/actions';
+import { useDispatch } from 'react-redux';
 
-  // Format date
+// DATABASE
+import { deleteListDatabase } from '../Database/sql';
+
+const ListDetailsScreen = ({ route, navigation }) => {
+
+    // PARAMS
+  const { item } = route.params;
+  const items = JSON.parse(item.items); 
+
+//   STATE
+const [loading, setLoading] = useState(false);
+const dispatch = useDispatch();
+
+  // FFORMAT DATE
   const formatDate = (timestamp) => {
     return new Date(timestamp).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -23,8 +37,9 @@ const ListDetailsScreen = ({ route, navigation }) => {
       minute: '2-digit'
     });
   };
+//   ENDS
 
-  // Get priority color
+  // PRIORITY COLOR
   const getPriorityColor = (priority) => {
     switch (priority) {
       case 'High':
@@ -35,6 +50,27 @@ const ListDetailsScreen = ({ route, navigation }) => {
         return '#45B7D1';
       default:
         return '#45B7D1';
+    }
+  };
+//   ENDS
+
+// HANDLE DELETE
+const handleDelete = async (item) => {
+    setLoading(true);
+    try {
+
+      await deleteListDatabase(item.id);
+      dispatch(deleteList(item.id));
+      dispatch(setSuccess("List deleted successfully."));
+      navigation.goBack();
+
+    } catch (error) {
+
+      console.error("Error deleting list:", error);
+      dispatch(setError("Failed to delete the list."));
+
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -104,10 +140,14 @@ const ListDetailsScreen = ({ route, navigation }) => {
 
           <TouchableOpacity 
             style={[styles.actionButton, styles.deleteButton]}
-            onPress={() => {/* Add delete logic */}}
+            onPress={() => {handleDelete(item)}}
           >
-            <MaterialIcons name="delete" size={20} color="#FFF" />
-            <Text style={styles.buttonText}>Delete List</Text>
+            {loading ? <ActivityIndicator/> :
+            <View style={styles.deleteButtonWrapper}>
+                <MaterialIcons name="delete" size={20} color="#FFF" />
+                <Text style={styles.buttonText}>Delete List</Text>
+            </View>
+        }
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -314,6 +354,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 16,
     borderRadius: 12,
+    gap: 8,
+  },
+
+  deleteButtonWrapper: 
+  {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     gap: 8,
   },
 
