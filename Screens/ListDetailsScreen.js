@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   StyleSheet, 
   Text, 
@@ -11,11 +11,11 @@ import {
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 // ACTIONS
-import { deleteList, setError, setSuccess } from '../Redux/actions';
+import { deleteList, setError, setSuccess, updateList, fetchLists } from '../Redux/actions';
 import { useDispatch, useSelector } from 'react-redux';
 
 // DATABASE
-import { deleteListDatabase } from '../Database/sql';
+import { deleteListDatabase, updateListDatabase, getListById, getAllLists } from '../Database/sql';
 import Toast from 'react-native-toast-message';
 
 const ListDetailsScreen = ({ route, navigation }) => {
@@ -26,6 +26,7 @@ const ListDetailsScreen = ({ route, navigation }) => {
 
 //   STATE
 const [loading, setLoading] = useState(false);
+const [loadingEdit, setLoadingEdit] = useState(false);
 
 const dispatch = useDispatch();
 const success = useSelector(state => state.success);
@@ -94,6 +95,47 @@ const handleDelete = async (item) => {
     }
   };
 
+  // HANDLE UPDATE
+  const handleUpdate = async (item) => {
+    setLoadingEdit(true);
+    try {
+      const list = await getListById(item.id);
+      if (!list) {
+        throw new Error("List not found");
+      }
+  
+      const id = list.id;
+      const status = 'done' ;
+      
+      await updateListDatabase(id, status);
+      dispatch(updateList(id, status));
+      dispatch(setSuccess("List updated successfully."));
+  
+      const storedList = await getAllLists();
+      dispatch(fetchLists(storedList));
+  
+      Toast.show({
+        type: 'success',
+        text1: 'Success',
+        text2: 'Marked as complete successfully',
+        position: 'bottom',
+      });
+    } catch (error) {
+      console.error("Error updating list:", error);
+  
+      dispatch(setError("Failed to update the list."));
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: `Failed to update the list: ${error.message}`,
+        position: 'bottom',
+      });
+    } finally {
+      setLoadingEdit(false);
+    }
+  };
+  
+
   return (
     <View style={styles.container}>
 
@@ -150,13 +192,20 @@ const handleDelete = async (item) => {
 
         {/* Action Buttons */}
         <View style={styles.actionButtons}>
-          <TouchableOpacity 
-            style={[styles.actionButton, styles.editButton]}
-            onPress={() => {/* Add edit navigation logic */}}
-          >
-            <MaterialIcons name="edit" size={20} color="#FFF" />
-            <Text style={styles.buttonText}>Edit List</Text>
-          </TouchableOpacity>
+          
+          {item.status === 'done' ? '' :
+            <TouchableOpacity
+              style={[styles.actionButton, styles.editButton]}
+              onPress={() => { handleUpdate(item) }}
+            >
+              {loadingEdit ? <ActivityIndicator /> :
+                <View style={styles.deleteButtonWrapper}>
+                  <MaterialIcons name="done-outline" size={20} color="#FFF" />
+                  <Text style={styles.buttonText}>Complete</Text>
+                </View>
+              }
+            </TouchableOpacity>
+          }
 
           <TouchableOpacity 
             style={[styles.actionButton, styles.deleteButton]}

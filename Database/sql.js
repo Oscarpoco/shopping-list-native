@@ -7,7 +7,7 @@ let db;
 export const initializeDatabase = async () => {
   try {
     if (!db) {
-      db = await openDatabaseAsync('shoppingList.db');
+      db = await openDatabaseAsync('shoppingListDatabase.db');
     }
 
     // CREATE TABLE IF NOT EXISTS WITH PRAGMA JOURNAL MODE
@@ -17,10 +17,10 @@ export const initializeDatabase = async () => {
         id INTEGER PRIMARY KEY NOT NULL,
         listTitle TEXT NOT NULL,
         timestamp TEXT NOT NULL,
-        listTag TEXT NOT NULL,
+        listTag TEXT,
         items TEXT NOT NULL,
-        description TEXT NOT NULL,
-        budget NUMBER NOT NULL,
+        description TEXT,
+        budget NUMBER,
         status TEXT NOT NULL,
         priority TEXT NOT NULL
       );
@@ -86,13 +86,13 @@ export const getAllLists = async () => {
 
   
 // UPDATE SHOPPING LIST IN DATABASE
-export const updateList = async (id, listTitle, timestamp, listTag, items, description, budget, status, priority) => {
+export const updateListDatabase = async (id, status) => {
   try {
     if (!db) throw new Error('DATABASE NOT INITIALIZED');
   
     const result = await db.runAsync(
-      'UPDATE shoppingList SET listTitle = ?, timestamp = ?, listTag = ?, items = ?, description = ?, budget = ?, status = ?, priority = ? WHERE id = ?',
-      [listTitle, timestamp, listTag, items, description, budget, status, priority, id]
+      'UPDATE shoppingList SET status = ? WHERE id = ?',
+      [status, id]
     );
   
     if (result.changes === 0) {

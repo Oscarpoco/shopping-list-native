@@ -6,7 +6,7 @@ import {
   FlatList,
   Animated,
   TouchableOpacity,
-  Platform
+  Platform,
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { setActiveFilter } from '../Redux/actions';
@@ -37,7 +37,7 @@ const ListScreen = ({ navigation }) => {
   const filteredLists = lists.filter((item) => {
     switch (activeFilter) {
       case 'to-shop':
-        return item.status === 'to-shop';
+        return item.status !== 'done';
       case 'in-progress':
         return item.status === 'in-progress';
       case 'done':
@@ -77,7 +77,6 @@ const ListScreen = ({ navigation }) => {
               name={statusIcons[status]} 
               size={24} 
               color={priorityColors[priority]} 
-              style={styles.headerTitleIcon}
             />
           </View>
           
@@ -195,25 +194,25 @@ const styles = StyleSheet.create({
   sidebar: 
   {
     width: '25%',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#4ECDC4',
     borderRightWidth: 1,
     borderRightColor: '#E9ECEF',
     padding: 5,
     justifyContent: 'space-between',
 
-    ...Platform.select({
-      ios: 
-      {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-      },
-      android: 
-      {
-        elevation: 4,
-      },
-    }),
+    // ...Platform.select({
+    //   ios: 
+    //   {
+    //     shadowColor: '#000',
+    //     shadowOffset: { width: 0, height: 1 },
+    //     shadowOpacity: 0.1,
+    //     shadowRadius: 4,
+    //   },
+    //   android: 
+    //   {
+    //     elevation: 2,
+    //   },
+    // }),
   },
 
   sidebarContent: 
@@ -229,7 +228,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 10,
     borderRadius: 12,
-    backgroundColor: '#d3ddda',
+    backgroundColor: '#fff',
   },
 
   sidebarButtonActive: 
@@ -258,8 +257,9 @@ const styles = StyleSheet.create({
   {
     padding: 12,
     borderRadius: 12,
-    backgroundColor: '#d3ddda',
+    backgroundColor: '#fff',
     alignItems: 'center',
+    marginBottom: 25
   },
 
   // MAIN STYLING
@@ -369,7 +369,7 @@ const styles = StyleSheet.create({
   {
     paddingHorizontal: 12,
     paddingVertical: 4,
-    borderRadius: 12,
+    borderRadius: 5,
   },
   priorityText: 
   {

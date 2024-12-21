@@ -42,7 +42,7 @@ const shoppingListReducer = (state = initialState, action) => {
                 description: action.payload.description,
                 priority: action.payload.priority,
                 budget: action.payload.budget,
-                status: 'pending',
+                status: action.payload.status,
               }
             ],
             items: [],  

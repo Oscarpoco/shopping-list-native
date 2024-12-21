@@ -92,7 +92,6 @@ const CreateScreen = ({ items, addItem, deleteItem, saveList, setError, setSucce
       setError(null);
       setSuccess('Item added successfully');
       setInputValue('');
-      navigation.goBack()
     }
   };
 
@@ -107,14 +106,9 @@ const CreateScreen = ({ items, addItem, deleteItem, saveList, setError, setSucce
     saveListToDatabase(listTitle, listTag, description, priority, budget, items);
 
     dispatch(setSuccess(`List "${listTitle}" created successfully`));
-    if (success) {
-      Toast.show({
-        type: 'success',
-        text1: 'Success',
-        text2: success,
-        position: 'bottom',
-      })
-    }
+  
+    navigation.navigate('Shopping list');
+
 
     setListTitle('');
     setListTag('');
@@ -135,7 +129,7 @@ const CreateScreen = ({ items, addItem, deleteItem, saveList, setError, setSucce
       const timestamp = new Date().toISOString();
       const status = 'active'; 
 
-      const newListId = await addList(
+      await addList(
         listTitle,
         timestamp,
         listTag,
@@ -146,7 +140,12 @@ const CreateScreen = ({ items, addItem, deleteItem, saveList, setError, setSucce
         priority
       );
 
-      console.log('List saved with ID:', newListId);
+      Toast.show({
+        type: 'success',
+        text1: 'Success',
+        text2: `List "${listTitle}" created successfully`,
+        position: 'bottom',
+      });
 
       const updatedLists = await getAllLists();
       dispatch(fetchLists(updatedLists));

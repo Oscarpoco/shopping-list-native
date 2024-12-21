@@ -124,10 +124,13 @@ const HomeScreen = ({ navigation }) => {
             </View>
 
             <View style={styles.statsContainer}>
-                <View style={styles.statsBox}>
+                <Pressable style={styles.statsBox} onPress={() => {
+                        dispatch(setActiveFilter('All Lists'));
+                        navigation.navigate('Shopping list');
+                    }}>
                     <Text style={styles.statsNumber}>{filteredLists.length}</Text>
                     <Text style={styles.statsLabel}>Lists</Text>
-                </View>
+                </Pressable>
                 <Pressable 
                     style={styles.addButton}
                     onPress={() => navigation.navigate('Create Item')}
