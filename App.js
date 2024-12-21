@@ -1,8 +1,11 @@
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { Text, View } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import Toast from 'react-native-toast-message';
+
+// REDUX
 import { Provider } from 'react-redux';
 import store from './Redux/store'; 
 
@@ -11,15 +14,10 @@ import HomeScreen from './Screens/HomeScreen';
 import ListScreen from './Screens/List';
 import CreateScreen from './Screens/CreateShopping';
 import ListDetailsScreen from './Screens/ListDetailsScreen';
+import ProfileScreen from './Screens/ProfileScreen';
 
-const SettingsScreen = ({ navigation }) => (
-  <View style={styles.container}>
-    <Text style={styles.text}>Settings</Text>
-    <Text style={styles.link} onPress={() => navigation.navigate('Home')}>Go to Home</Text>
-  </View>
-);
 
-// Stack Navigator
+
 const Stack = createStackNavigator();
 
 export default function App() {
@@ -30,11 +28,26 @@ export default function App() {
           <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Shopping list" component={ListScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Create Item" component={CreateScreen} />
-          <Stack.Screen name="Settings" component={SettingsScreen} />
+          <Stack.Screen name="Profile" component={ProfileScreen} />
           <Stack.Screen name="Details" component={ListDetailsScreen} />
         </Stack.Navigator>
         <StatusBar style="auto" />
+        <View style={styles.toast}>
+          <Toast />
+        </View>
       </NavigationContainer>
     </Provider>
   );
 }
+
+const styles = StyleSheet.create({
+  toast: 
+  {
+    width: '100%',
+    position: 'absolute',
+    bottom: 50,
+    zIndex: 10,
+    justifyContent: 'center',
+    alignContent: "center",
+  }
+})

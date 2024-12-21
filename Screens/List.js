@@ -235,6 +235,9 @@ const styles = StyleSheet.create({
   sidebarButtonActive: 
   {
     backgroundColor: '#6C63FF',
+    borderRadius: 0,
+    borderBottomLeftRadius: 35,
+    borderTopRightRadius: 35,
   },
 
   sidebarButtonLabel: 

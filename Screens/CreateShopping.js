@@ -12,6 +12,8 @@ import {
   ScrollView,
   Animated
 } from 'react-native';
+
+// REDUX
 import { connect, useDispatch, useSelector } from 'react-redux';
 import { 
   addItem, 
@@ -22,14 +24,19 @@ import {
   fetchLists
 } from '../Redux/actions';
 
+// DATABASE
 import { addList, getAllLists, initializeDatabase } from '../Database/sql.js';
+
+// EXTRA IMPORTS
 import { Picker } from '@react-native-picker/picker';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import Toast from 'react-native-toast-message';
 
-const CreateScreen = ({ items, addItem, deleteItem, saveList, setError, setSuccess }) => {
+const CreateScreen = ({ items, addItem, deleteItem, saveList, setError, setSuccess, navigation }) => {
   const dispatch = useDispatch();
-  const shoppingList = useSelector(state => state.shoppingList);
   const lists = useSelector(state => state.lists);
+  const success = useSelector(state => state.success);
+  
 
   // Animation value
   const [scaleAnim] = useState(new Animated.Value(1));
@@ -85,6 +92,7 @@ const CreateScreen = ({ items, addItem, deleteItem, saveList, setError, setSucce
       setError(null);
       setSuccess('Item added successfully');
       setInputValue('');
+      navigation.goBack()
     }
   };
 
@@ -99,6 +107,15 @@ const CreateScreen = ({ items, addItem, deleteItem, saveList, setError, setSucce
     saveListToDatabase(listTitle, listTag, description, priority, budget, items);
 
     dispatch(setSuccess(`List "${listTitle}" created successfully`));
+    if (success) {
+      Toast.show({
+        type: 'success',
+        text1: 'Success',
+        text2: success,
+        position: 'bottom',
+      })
+    }
+
     setListTitle('');
     setListTag('');
     setDescription('');
@@ -168,7 +185,10 @@ const CreateScreen = ({ items, addItem, deleteItem, saveList, setError, setSucce
           />
           <TouchableOpacity 
             style={styles.addButton} 
-            onPress={handleAddItem}
+            onPress={() => {
+              animatePress();
+              handleAddItem();
+            }}
           >
             <MaterialIcons name="add" size={24} color="#FFF" />
           </TouchableOpacity>
@@ -337,7 +357,7 @@ const mapDispatchToProps = {
 };
 
 const styles = StyleSheet.create({
-  
+
   container: 
   {
     flex: 1,

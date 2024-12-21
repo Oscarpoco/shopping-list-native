@@ -1,32 +1,32 @@
 import React from 'react';
-import { StyleSheet, Text, View, Pressable, TextInput, FlatList } from 'react-native';
+import { StyleSheet, Text, View, Pressable, TextInput, FlatList, Dimensions } from 'react-native';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { setActiveFilter } from '../Redux/actions.js';
 
 // ACTIONS
 import { fetchLists } from '../Redux/actions.js';
-
-import {
-    initializeDatabase,
-    getAllLists,
-} from '../Database/sql.js';
+import { initializeDatabase, getAllLists } from '../Database/sql.js';
 
 import Entypo from 'react-native-vector-icons/Entypo';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { LinearGradient } from 'expo-linear-gradient';
+
+const { width } = Dimensions.get('window');
 
 const HomeScreen = ({ navigation }) => {
     const dispatch = useDispatch();
     const lists = useSelector(state => state.lists) || [];
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [filteredLists, setFilteredLists] = useState(lists);
 
     useEffect(() => {
         const setupDatabase = async () => {
             try {
                 const initialized = await initializeDatabase();
                 if (initialized) {
-                    console.log('Database initialized successfully');
                     const storedList = await getAllLists();
                     dispatch(fetchLists(storedList));
                 }
@@ -37,38 +37,61 @@ const HomeScreen = ({ navigation }) => {
         setupDatabase();
     }, [dispatch]);
 
+    // Update filtered lists when lists or search query changes
+    useEffect(() => {
+        const filtered = lists.filter(list => 
+            list.listTitle?.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+        setFilteredLists(filtered);
+    }, [lists, searchQuery]);
+
     const renderListItem = ({ item }) => {
         return (
             <Pressable
-                style={[styles.listCard, { 
-                    backgroundColor: 
-                        item.priority === 'High' ? '#FF6B6B' :
-                        item.priority === 'Medium' ? '#4ECDC4' : '#45B7D1'
-                }]}
+                style={[styles.listCard]}
                 onPress={() => navigation.navigate('Details', { item })}
             >
-                <View style={styles.listCardContent}>
-                    <Text style={styles.listTitle}>{item.listTitle || 'Untitled'}</Text>
-                    <Text style={styles.listDescription} numberOfLines={2}>
-                        {item.description || 'No description'}
-                    </Text>
-                    <Text style={styles.listDate}>
-                        {new Date(item.timestamp).toLocaleDateString()}
-                    </Text>
-                </View>
-                <View style={styles.listCardIcon}>
-                    <MaterialIcons name="keyboard-arrow-right" size={24} color="#fff" />
-                </View>
+                <LinearGradient
+                    colors={
+                        item.priority === 'High' ? ['#FF6B6B', '#FF8787'] :
+                        item.priority === 'Medium' ? ['#4ECDC4', '#6EE7E7'] :
+                        ['#45B7D1', '#69D2EC']
+                    }
+                    style={styles.listCardGradient}
+                >
+                    <View style={styles.listCardContent}>
+                        <View style={styles.listCardHeader}>
+                            <Text style={styles.listTitle}>{item.listTitle || 'Untitled'}</Text>
+                            <MaterialIcons name="keyboard-arrow-right" size={24} color="#fff" />
+                        </View>
+                        <Text style={styles.listDescription} numberOfLines={2}>
+                            {item.description || 'No description'}
+                        </Text>
+                        <View style={styles.listFooter}>
+                            <Text style={styles.listDate}>
+                                {new Date(item.timestamp).toLocaleDateString()}
+                            </Text>
+                            <View style={styles.priorityBadge}>
+                                <Text style={styles.priorityText}>{item.priority}</Text>
+                            </View>
+                        </View>
+                    </View>
+                </LinearGradient>
             </Pressable>
         );
     };
 
-    const CategoryButton = ({ icon, title, color, onPress }) => (
-        <Pressable style={[styles.categoryButton, { backgroundColor: color }]} onPress={onPress}>
-            <View style={[styles.categoryIcon, { backgroundColor: `${color}33` }]}>
-                {icon}
-            </View>
-            <Text style={styles.categoryText}>{title}</Text>
+    const CategoryButton = ({ icon, title, color, gradientColors, onPress }) => (
+        <Pressable style={styles.categoryButton} onPress={onPress}>
+            <LinearGradient
+                colors={gradientColors}
+                style={styles.categoryGradient}
+            >
+                <View style={[styles.categoryIcon, { backgroundColor: `${color}33` }]}>
+                    {icon}
+                </View>
+                <Text style={styles.categoryText}>{title}</Text>
+            </LinearGradient>
         </Pressable>
     );
 
@@ -79,27 +102,42 @@ const HomeScreen = ({ navigation }) => {
                     <Text style={styles.headerTitle}>mShop</Text>
                     <MaterialIcons name="shopping-cart" size={18} color="#FF6B6B" style={styles.headerTitleIcon} />
                 </View>
-                <Pressable style={styles.profileButton}>
-                    <Entypo name="user" size={24} color="#333" />
+                <Pressable style={styles.profileButton} onPress={() => navigation.navigate('Profile')}>
+                    <Entypo name="user" size={20} color="#333" />
                 </Pressable>
             </View>
 
             <View style={styles.searchContainer}>
-                <Feather name="search" size={20} color="#666" />
+                <Feather name="search" size={20} color="#666" style={{marginLeft: 10}}/>
                 <TextInput
                     style={styles.searchInput}
                     placeholder="Search lists..."
                     placeholderTextColor="#999"
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
                 />
+                {searchQuery !== '' && (
+                    <Pressable onPress={() => setSearchQuery('')}>
+                        <MaterialIcons name="clear" size={20} color="#666" />
+                    </Pressable>
+                )}
             </View>
 
             <View style={styles.statsContainer}>
-                <Text style={styles.statsText}>{lists.length} lists this month 📈</Text>
+                <View style={styles.statsBox}>
+                    <Text style={styles.statsNumber}>{filteredLists.length}</Text>
+                    <Text style={styles.statsLabel}>Lists</Text>
+                </View>
                 <Pressable 
                     style={styles.addButton}
                     onPress={() => navigation.navigate('Create Item')}
                 >
-                    <Text style={styles.addButtonText}>+ New List</Text>
+                    <LinearGradient
+                        colors={['#45B7D1', '#69D2EC']}
+                        style={styles.addButtonGradient}
+                    >
+                        <Text style={styles.addButtonText}>New List</Text>
+                    </LinearGradient>
                 </Pressable>
             </View>
 
@@ -108,6 +146,7 @@ const HomeScreen = ({ navigation }) => {
                     icon={<Feather name="shopping-bag" size={24} color="#FF6B6B" />}
                     title="To Shop"
                     color="#FFE3E3"
+                    gradientColors={['#FFE3E3', '#FFD0D0']}
                     onPress={() => {
                         dispatch(setActiveFilter('to-shop'));
                         navigation.navigate('Shopping list');
@@ -117,6 +156,7 @@ const HomeScreen = ({ navigation }) => {
                     icon={<MaterialIcons name="shopping-cart" size={24} color="#4ECDC4" />}
                     title="Progress"
                     color="#E8FFF9"
+                    gradientColors={['#E8FFF9', '#D0F7F0']}
                     onPress={() => {
                         dispatch(setActiveFilter('in-progress'));
                         navigation.navigate('Shopping list');
@@ -126,6 +166,7 @@ const HomeScreen = ({ navigation }) => {
                     icon={<MaterialIcons name="check-circle" size={24} color="#45B7D1" />}
                     title="Done"
                     color="#E3F6FF"
+                    gradientColors={['#E3F6FF', '#D0EBFF']}
                     onPress={() => {
                         dispatch(setActiveFilter('done'));
                         navigation.navigate('Shopping list');
@@ -134,14 +175,19 @@ const HomeScreen = ({ navigation }) => {
             </View>
 
             <FlatList
-                data={lists}
+                data={filteredLists}
                 renderItem={renderListItem}
                 keyExtractor={(item, index) => index.toString()}
                 contentContainerStyle={styles.listContainer}
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
-                        <Text style={styles.emptyText}>No lists yet</Text>
-                        <Text style={styles.emptySubtext}>Create your first shopping list!</Text>
+                        <MaterialIcons name="shopping-basket" size={64} color="#DDD" />
+                        <Text style={styles.emptyText}>
+                            {searchQuery ? 'No matching lists found' : 'No lists yet'}
+                        </Text>
+                        <Text style={styles.emptySubtext}>
+                            {searchQuery ? 'Try a different search term' : 'Create your first shopping list!'}
+                        </Text>
                     </View>
                 }
             />
@@ -162,8 +208,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 20,
-        paddingBottom: 10,
-        paddingTop: 40,
+        paddingTop: 50,
+        paddingBottom: 20,
         backgroundColor: '#fff',
         elevation: 4,
         shadowColor: '#000',
@@ -176,35 +222,23 @@ const styles = StyleSheet.create({
     {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center',
-        gap: 5
+        gap: 8,
     },
 
     headerTitle: 
     {
-        fontSize: 20,
-        fontWeight: '700',
+        fontSize: 24,
+        fontWeight: '800',
         color: '#333',
-        letterSpacing: 1.5
-    },
-
-    headerTitleIcon: 
-    {
         letterSpacing: 1.5,
-        marginTop: 7
     },
 
-    menuButton: 
-    {
-        padding: 8,
-        borderRadius: 12,
-        backgroundColor: '#F8F9FA',
+    headerTitleIcon: {
+        marginTop: 7,
     },
-
-    profileButton: 
-    {
-        padding: 8,
-        borderRadius: 12,
+    profileButton: {
+        padding: 7,
+        borderRadius: 10,
         backgroundColor: '#E3F6FF',
     },
 
@@ -214,8 +248,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: '#fff',
         margin: 20,
-        padding: 12,
-        borderRadius: 16,
+        padding: 10,
+        borderRadius: 15,
         elevation: 2,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
@@ -226,7 +260,8 @@ const styles = StyleSheet.create({
     searchInput: 
     {
         flex: 1,
-        marginLeft: 10,
+        marginLeft: 15,
+        marginRight: 12,
         fontSize: 16,
         color: '#333',
     },
@@ -240,34 +275,64 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
 
-    statsText: 
+    statsBox: 
     {
-        fontSize: 18,
-        fontWeight: '500',
+        backgroundColor: '#fff',
+        paddingVertical: 7,
+        paddingHorizontal: 20,
+        borderRadius: 15,
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 5
+    },
+
+    statsNumber: 
+    {
+        fontSize: 24,
+        fontWeight: '700',
         color: '#333',
-        letterSpacing: 1
+    },
+
+    statsLabel: 
+    {
+        fontSize: 16,
+        color: '#666',
+        marginTop: 4,
+        letterSpacing: 1.5
     },
 
     addButton: 
     {
-        backgroundColor: '#45B7D1',
-        paddingVertical: 8,
-        paddingHorizontal: 16,
-        borderRadius: 12,
-        elevation: 2,
+        borderRadius: 16,
+        overflow: 'hidden',
+        elevation: 3,
+    },
+
+    addButtonGradient: 
+    {
+        paddingVertical: 12,
+        paddingHorizontal: 20,
     },
 
     addButtonText: 
     {
         color: '#fff',
         fontWeight: '600',
+        fontSize: 16,
+        letterSpacing: 1
     },
 
     categoriesContainer: 
     {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        paddingHorizontal: 20,
+        paddingHorizontal: 10,
         marginBottom: 20,
     },
 
@@ -275,8 +340,14 @@ const styles = StyleSheet.create({
     {
         flex: 1,
         marginHorizontal: 6,
+        borderRadius: 20,
+        overflow: 'hidden',
+        elevation: 2,
+    },
+
+    categoryGradient: 
+    {
         padding: 16,
-        borderRadius: 16,
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -284,13 +355,13 @@ const styles = StyleSheet.create({
     categoryIcon: 
     {
         padding: 12,
-        borderRadius: 12,
+        borderRadius: 16,
         marginBottom: 8,
     },
 
     categoryText: 
     {
-        fontSize: 12,
+        fontSize: 14,
         fontWeight: '600',
         color: '#333',
     },
@@ -298,73 +369,79 @@ const styles = StyleSheet.create({
     listContainer: 
     {
         padding: 20,
+        paddingHorizontal: 10,
     },
-
-    listCard: 
-    {
-        flexDirection: 'row',
-        backgroundColor: '#fff',
-        borderRadius: 16,
+    listCard: {
+        borderRadius: 20,
         marginBottom: 16,
-        padding: 16,
+        overflow: 'hidden',
         elevation: 3,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
     },
 
+  
     listCardContent: 
     {
         flex: 1,
+        position: 'relative',
+        padding: 20,
     },
 
-    listCardIcon: 
+
+    listCardHeader: 
     {
-        justifyContent: 'center',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 12,
+
     },
 
-    listTitle: 
-    {
-        fontSize: 18,
+    listTitle: {
+        fontSize: 20,
         fontWeight: '700',
         color: '#fff',
-        marginBottom: 8,
     },
-
-    listDescription: 
-    {
-        fontSize: 14,
+    listDescription: {
+        fontSize: 16,
         color: '#fff',
         opacity: 0.9,
-        marginBottom: 8,
+        marginBottom: 16,
     },
-
-    listDate: 
-    {
-        fontSize: 12,
+    listFooter: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    listDate: {
+        fontSize: 14,
         color: '#fff',
         opacity: 0.8,
     },
-
-    emptyContainer: 
-    {
+    priorityBadge: {
+        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        paddingVertical: 4,
+        paddingHorizontal: 12,
+        borderRadius: 12,
+    },
+    priorityText: {
+        color: '#fff',
+        fontSize: 12,
+        fontWeight: '500',
+    },
+    emptyContainer: {
         alignItems: 'center',
         justifyContent: 'center',
         padding: 40,
     },
-
-    emptyText: 
-    {
-        fontSize: 18,
+    emptyText: {
+        fontSize: 20,
         fontWeight: '600',
         color: '#666',
+        marginTop: 16,
         marginBottom: 8,
     },
-
-    emptySubtext: 
-    {
-        fontSize: 14,
+    emptySubtext: {
+        fontSize: 16,
         color: '#999',
     },
 });

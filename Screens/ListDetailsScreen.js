@@ -12,10 +12,11 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 // ACTIONS
 import { deleteList, setError, setSuccess } from '../Redux/actions';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 // DATABASE
 import { deleteListDatabase } from '../Database/sql';
+import Toast from 'react-native-toast-message';
 
 const ListDetailsScreen = ({ route, navigation }) => {
 
@@ -25,7 +26,10 @@ const ListDetailsScreen = ({ route, navigation }) => {
 
 //   STATE
 const [loading, setLoading] = useState(false);
+
 const dispatch = useDispatch();
+const success = useSelector(state => state.success);
+const errorMessage = useSelector(state => state.error);
 
   // FFORMAT DATE
   const formatDate = (timestamp) => {
@@ -62,12 +66,28 @@ const handleDelete = async (item) => {
       await deleteListDatabase(item.id);
       dispatch(deleteList(item.id));
       dispatch(setSuccess("List deleted successfully."));
+      if(success){
+        Toast.show({
+            type: 'success',
+            text1: 'Success',
+            text2: success,
+            position: 'bottom',
+        })
+      }
       navigation.goBack();
 
     } catch (error) {
 
       console.error("Error deleting list:", error);
       dispatch(setError("Failed to delete the list."));
+      if(errorMessage){
+        Toast.show({
+            type: 'success',
+            text1: 'Success',
+            text2: errorMessage,
+            position: 'bottom',
+        });
+      }
 
     } finally {
       setLoading(false);
