@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -10,8 +10,16 @@ import {
     TouchableOpacity
 } from 'react-native';
 
+// REDUX 
+import { useDispatch } from 'react-redux';
+import { setLoggedInUser } from '../Redux/actions.js';
+
+// AUTHENTICATION DATABASE
+import {LoginUser, initializeDatabase} from "../Database/sql.js";
+
 // ICONS
 import { MaterialIcons } from '@expo/vector-icons';
+import Toast from 'react-native-toast-message';
 
 export default function LoginScreen({ navigation }) {
     const [email, setEmail] = useState('');
@@ -20,9 +28,52 @@ export default function LoginScreen({ navigation }) {
     const [loading, setLoading] = useState(false);
     const [forgotPasswordModal, setForgotPasswordModal] = useState(false);
     const [resetEmail, setResetEmail] = useState('');
+    const dispatch = useDispatch();
+
+    // INITIALIZE DATABASE
+    useEffect(() => {
+        const setupDatabase = async () => {
+            try {
+                await initializeDatabase();
+            } catch (error) {
+                console.error('Database initialization error:', error);
+            }
+        };
+        setupDatabase();
+    }, []);
+    // ENDS
+
+    // HANDLE LOGIN
+    const handleSubmitLogin = async () => 
+        {
+            setLoading(true);
+
+            const user = {
+                email,
+                password
+            }
+            try {
+                const response = await LoginUser(user);
+                const userId = response.id;
+                dispatch(setLoggedInUser(userId));
+                navigation.navigate('Home');
+
+            } catch (error) {
+                console.error('Login failed:', error); 
+                Toast.show({
+                    type: 'error',
+                    text1: 'Login failed',
+                    text2: error.message || 'Something went wrong. Please try again.',
+                    position: 'bottom'
+                });
+
+            } finally {
+                setLoading(false);
+            }
+        }
+    // ENDS
 
     const handleForgotPassword = () => {
-        // Handle password reset logic here
         console.log('Reset password for:', resetEmail);
         setForgotPasswordModal(false);
         setResetEmail('');
@@ -86,7 +137,7 @@ export default function LoginScreen({ navigation }) {
 
                     <Pressable
                         style={styles.loginButton}
-                        onPress={() => navigation.navigate('Home')}
+                        onPress={() => {handleSubmitLogin()}}
                         activeOpacity={0.9}
                     >
                         <Text style={styles.loginButtonText}>

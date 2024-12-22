@@ -10,8 +10,11 @@ import {
     SafeAreaView
 } from 'react-native';
 
+// REGISTER A USER
+import registerUser from "../Database/sql.js";
+
 // ICONS
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 
 export default function RegisterScreen({ navigation }) {
     const [email, setEmail] = useState('');
@@ -100,7 +103,7 @@ export default function RegisterScreen({ navigation }) {
                         style={styles.googleButton}
                         onPress={handleGoogleSignIn}
                     >
-                        <MaterialIcons name="google" size={24} color="#1A202C" style={styles.googleIcon} />
+                        <Ionicons name="logo-google" size={24} color="#4285F4" style={styles.googleIcon} />
                         <Text style={styles.googleButtonText}>Continue with Google</Text>
                     </Pressable>
 

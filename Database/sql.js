@@ -7,12 +7,13 @@ let db;
 export const initializeDatabase = async () => {
   try {
     if (!db) {
-      db = await openDatabaseAsync('shoppingListDatabase.db');
+      db = await openDatabaseAsync('appDatabase.db');
     }
 
-    // CREATE TABLE IF NOT EXISTS WITH PRAGMA JOURNAL MODE
+    // CREATE TABLES IF NOT EXISTS WITH PRAGMA JOURNAL MODE
     await db.execAsync(`
       PRAGMA journal_mode = WAL;
+      
       CREATE TABLE IF NOT EXISTS shoppingList (
         id INTEGER PRIMARY KEY NOT NULL,
         listTitle TEXT NOT NULL,
@@ -23,6 +24,17 @@ export const initializeDatabase = async () => {
         budget NUMBER,
         status TEXT NOT NULL,
         priority TEXT NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT,
+        email TEXT NOT NULL UNIQUE,
+        password TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        phone TEXT NOT NULL UNIQUE,
+        status TEXT NOT NULL
       );
     `);
 
@@ -153,3 +165,77 @@ export const getListById = async (id) => {
     throw new Error('Failed to retrieve list from database');
   }
 };
+
+
+// USER FUNCTIONS
+
+// REGISTER USER
+export const registerUser = async (user) => 
+  {
+      try {
+          if(!database)
+              {
+                  throw new Error("Database not initialized");
+              }
+          const response = await database.execAsync
+          (
+              `
+              INSER INTO users(name ? email ? password ? phone? status? ) VALUES(?, ?, ?, ?, ?)
+              `,
+              [
+                  user.name,
+                  user.email,
+                  user.password,
+                  user.phone,
+                  user.status
+              ]
+          );
+
+          console.log(`USER SUCCESSFULLY REGISTERED WITH THE ID ${response.lastInsertRowId}`);
+          return response.lastInsertRowId;
+      } catch (error) {
+          console.error(`Error occured while registering user`,error);
+          throw new Error('Failed to register user');
+      }
+  }
+// ENDS
+
+
+// LOGIN A USER
+export const LoginUser = async (user) => 
+  {
+      try {
+
+          if(!database)
+              {
+                  throw new Error(`Database not initialized`);
+              }
+
+          const response = await database.execAsync
+              (
+                  `SELECT * FROM users WHERE email = ? AND password = ?` ,
+                  [
+                      user.email, 
+                      user.password
+                  ]
+              );
+
+          if(response && response.length > 0)
+              {
+                  const userRecord = response[0];
+                  console.log(`USER SUCCESSFULLY LOGGED IN WITH THE ID ${userRecord.id}`);
+                  return userRecord;
+              }
+
+          else 
+              {
+                  console.log(`Invalid email or password`);
+                  return null;
+              }
+          
+      } catch (error) {
+          console.error(`Error occured while logging user`,error); 
+          throw new Error("Failed to login user");
+      }
+  }
+// ENDS

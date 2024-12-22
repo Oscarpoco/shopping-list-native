@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { View, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
@@ -8,6 +8,11 @@ import Toast from 'react-native-toast-message';
 // REDUX
 import { Provider } from 'react-redux';
 import store from './Redux/store'; 
+import { useDispatch } from 'react-redux';
+import { fetchLists } from './Redux/actions';
+
+// DATABASE
+import { initializeDatabase } from './Database/sql';
 
 // SCREENS
 import HomeScreen from './Screens/HomeScreen';
@@ -24,6 +29,7 @@ import RegisterScreen from './Screens/RegisterScreen';
 const Stack = createStackNavigator();
 
 export default function App() {
+  
   return (
     <Provider store={store}> 
       <NavigationContainer>

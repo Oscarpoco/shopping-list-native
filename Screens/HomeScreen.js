@@ -37,7 +37,6 @@ const HomeScreen = ({ navigation }) => {
         setupDatabase();
     }, [dispatch]);
 
-    // Update filtered lists when lists or search query changes
     useEffect(() => {
         const filtered = lists.filter(list => 
             list.listTitle?.toLowerCase().includes(searchQuery.toLowerCase())
