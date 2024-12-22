@@ -28,7 +28,7 @@ const HomeScreen = ({ navigation }) => {
             try {
                 const initialized = await initializeDatabase();
                 if (initialized) {
-                    const storedList = await getAllLists();
+                    const storedList = await getAllLists(userId);
                     dispatch(fetchLists(storedList));
                 }
             } catch (error) {
@@ -44,8 +44,6 @@ const HomeScreen = ({ navigation }) => {
         );
         setFilteredLists(filtered);
     }, [lists, searchQuery]);
-
-    console.log("userId", userId);
 
     const renderListItem = ({ item }) => {
         return (

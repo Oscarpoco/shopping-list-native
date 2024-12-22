@@ -7,7 +7,7 @@ let db;
 export const initializeDatabase = async () => {
   try {
     if (!db) {
-      db = await openDatabaseAsync('Database.db');
+      db = await openDatabaseAsync('applicationDatabase.db');
     }
 
     // CREATE TABLES IF NOT EXISTS WITH PRAGMA JOURNAL MODE
@@ -23,7 +23,9 @@ export const initializeDatabase = async () => {
         description TEXT,
         budget NUMBER,
         status TEXT NOT NULL,
-        priority TEXT NOT NULL
+        priority TEXT NOT NULL,
+        userId Number,
+        FOREIGN KEY (userId) REFERENCES users(id)
       );
 
       CREATE TABLE IF NOT EXISTS users (
@@ -50,13 +52,13 @@ export const initializeDatabase = async () => {
 
 
 // ADD SHOPPING LIST TO DATABASE
-export const addList = async (listTitle, timestamp, listTag, items, description, budget, status, priority) => {
+export const addList = async (listTitle, timestamp, listTag, items, description, budget, status, priority, userId) => {
   try {
     if (!db) throw new Error('DATABASE NOT INITIALIZED');
   
     const result = await db.runAsync(
       'INSERT INTO shoppingList (listTitle, timestamp, listTag, items, description, budget, status, priority) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      listTitle, timestamp, listTag, items, description, budget, status, priority
+      listTitle, timestamp, listTag, items, description, budget, status, priority, userId
     );
   
     console.log('SHOPPING LIST INSERTED SUCCESSFULLY. ID:', result.lastInsertRowId);
@@ -70,11 +72,11 @@ export const addList = async (listTitle, timestamp, listTag, items, description,
 
   
 // GET ALL SHOPPING LIST FROM DATABASE
-export const getAllLists = async () => {
+export const getAllLists = async (userId) => {
   try {
     if (!db) throw new Error('DATABASE NOT INITIALIZED');
   
-    const rows = await db.getAllAsync('SELECT * FROM shoppingList');
+    const rows = await db.getAllAsync('SELECT * FROM shoppingList WHERE userId = ?', userId);
     console.log(`RETRIEVED ${rows.length} SHOPPING LIST SUCCESSFULLY`);
     return rows.map((row) => ({
 
@@ -91,7 +93,7 @@ export const getAllLists = async () => {
     }));
   } catch (error) {
     console.error('ERROR RETRIEVING IMAGES:', error);
-    throw new Error('Failed to retrieve images from database');
+    throw new Error('Failed to retrieve lists from database');
   }
 };
 

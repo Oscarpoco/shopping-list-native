@@ -34,8 +34,8 @@ import Toast from 'react-native-toast-message';
 
 const CreateScreen = ({ items, addItem, deleteItem, saveList, setError, setSuccess, navigation }) => {
   const dispatch = useDispatch();
-  const lists = useSelector(state => state.lists);
-  const success = useSelector(state => state.success);
+  const userId  =useSelector(state => state.userId) || "";
+  
   
 
   // Animation value
@@ -57,7 +57,7 @@ const CreateScreen = ({ items, addItem, deleteItem, saveList, setError, setSucce
       try {
         const initialized = await initializeDatabase();
         if (initialized) {
-          const storedList = await getAllLists();
+          const storedList = await getAllLists(userId);
           dispatch(fetchLists(storedList));
         }
       } catch (error) {
@@ -102,8 +102,8 @@ const CreateScreen = ({ items, addItem, deleteItem, saveList, setError, setSucce
       return;
     }
 
-    dispatch(saveList({ listTitle, listTag, description, priority, budget }));
-    saveListToDatabase(listTitle, listTag, description, priority, budget, items);
+    dispatch(saveList({ listTitle, listTag, description, priority, budget,userId }));
+    saveListToDatabase(listTitle, listTag, description, priority, budget, items, userId);
 
     dispatch(setSuccess(`List "${listTitle}" created successfully`));
   
@@ -120,7 +120,7 @@ const CreateScreen = ({ items, addItem, deleteItem, saveList, setError, setSucce
   };
 
   // SAVE LIST TO DATABASE
-  const saveListToDatabase = async (listTitle, listTag, description, priority, budget, items) => {
+  const saveListToDatabase = async (listTitle, listTag, description, priority, budget, items, userId) => {
     try {
       if (!listTitle || !listTag || !items || !budget) {
         throw new Error('Missing required fields');
@@ -137,7 +137,8 @@ const CreateScreen = ({ items, addItem, deleteItem, saveList, setError, setSucce
         description,
         budget,
         status,
-        priority
+        priority, 
+        userId
       );
 
       Toast.show({
@@ -147,7 +148,7 @@ const CreateScreen = ({ items, addItem, deleteItem, saveList, setError, setSucce
         position: 'bottom',
       });
 
-      const updatedLists = await getAllLists();
+      const updatedLists = await getAllLists(userId);
       dispatch(fetchLists(updatedLists));
     } catch (error) {
       console.error('Error saving list:', error);
