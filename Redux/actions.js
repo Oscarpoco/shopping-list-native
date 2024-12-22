@@ -11,11 +11,16 @@ export const SET_ERROR = 'SET_ERROR';
 export const SET_SUCCESS = 'SET_SUCCESS';
 export const SET_ACTIVE_FILTER = 'SET_ACTIVE_FILTER';
 export const SET_USER = 'SET_USER';
+export const LOGOUT = 'LOGOUT';
 
 // USER
 export const setLoggedInUser = (userId)=> ({
   type: SET_USER,
   payload: userId,
+})
+
+export const setLoggedOutUser = ()=>({
+  type: LOGOUT,
 })
 
 // FILTER

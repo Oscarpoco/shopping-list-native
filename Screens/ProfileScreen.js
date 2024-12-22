@@ -1,14 +1,31 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, Pressable, ScrollView, Image, Switch } from 'react-native';
+
+// REDUX
+import { useDispatch } from "react-redux";
+import { setLoggedOutUser } from '../Redux/actions';
+// ENDS
+
+// ICONS
 import { LinearGradient } from 'expo-linear-gradient';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { useNavigation } from '@react-navigation/native';
 
-const ProfileScreen = () => {
-    const navigation = useNavigation();
+
+const ProfileScreen = ({navigation}) => {
+
+    // LOCAL STATE
     const [notificationsEnabled, setNotificationsEnabled] = useState(true);
     const [darkModeEnabled, setDarkModeEnabled] = useState(false);
+    const dispatch = useDispatch();
+    // ENDS
+
+    // HANDLE LOGOUT
+    const handleLogout = () => {
+        dispatch(setLoggedOutUser());
+        navigation.navigate("Login");
+    }
+    // ENDS
 
     const ProfileCard = ({ icon, title, subtitle, onPress }) => (
         <Pressable style={styles.profileCard} onPress={onPress}>
@@ -118,7 +135,7 @@ const ProfileScreen = () => {
                 />
             </View>
 
-            <Pressable style={styles.logoutButton}>
+            <Pressable style={styles.logoutButton} onPress={() => handleLogout()}>
                 <Text style={styles.logoutButtonText}>Log Out</Text>
             </Pressable>
         </ScrollView>

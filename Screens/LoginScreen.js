@@ -58,7 +58,7 @@ export default function LoginScreen({ navigation }) {
                 Toast.show({
                     type: 'error',
                     text1: 'Login failed',
-                    text2: error.message || 'Something went wrong. Please try again.',
+                    text2: 'Invalid credentials. Please try again.',
                     position: 'bottom'
                 });
 

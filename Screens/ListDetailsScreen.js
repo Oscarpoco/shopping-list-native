@@ -31,6 +31,8 @@ const [loadingEdit, setLoadingEdit] = useState(false);
 const dispatch = useDispatch();
 const success = useSelector(state => state.success);
 const errorMessage = useSelector(state => state.error);
+const userId  = useSelector(state => state.userId);
+  
 
   // FFORMAT DATE
   const formatDate = (timestamp) => {
@@ -111,7 +113,7 @@ const handleDelete = async (item) => {
       dispatch(updateList(id, status));
       dispatch(setSuccess("List updated successfully."));
   
-      const storedList = await getAllLists();
+      const storedList = await getAllLists(userId);
       dispatch(fetchLists(storedList));
   
       Toast.show({
@@ -198,7 +200,7 @@ const handleDelete = async (item) => {
               style={[styles.actionButton, styles.editButton]}
               onPress={() => { handleUpdate(item) }}
             >
-              {loadingEdit ? <ActivityIndicator /> :
+              {loadingEdit ? <ActivityIndicator size="small" color="#fff" /> :
                 <View style={styles.deleteButtonWrapper}>
                   <MaterialIcons name="done-outline" size={20} color="#FFF" />
                   <Text style={styles.buttonText}>Complete</Text>

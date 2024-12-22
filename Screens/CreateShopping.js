@@ -10,7 +10,7 @@ import {
   Platform,
   KeyboardAvoidingView,
   ScrollView,
-  Animated
+  Animated,
 } from 'react-native';
 
 // REDUX
@@ -25,7 +25,7 @@ import {
 } from '../Redux/actions';
 
 // DATABASE
-import { addList, getAllLists, initializeDatabase } from '../Database/sql.js';
+import { addList, getAllLists } from '../Database/sql.js';
 
 // EXTRA IMPORTS
 import { Picker } from '@react-native-picker/picker';
@@ -34,14 +34,13 @@ import Toast from 'react-native-toast-message';
 
 const CreateScreen = ({ items, addItem, deleteItem, saveList, setError, setSuccess, navigation }) => {
   const dispatch = useDispatch();
-  const userId  =useSelector(state => state.userId) || "";
-  
+  const userId  = useSelector(state => state.userId);
   
 
   // Animation value
   const [scaleAnim] = useState(new Animated.Value(1));
 
-  // Local state
+  // LOCAL STATES
   const [inputValue, setInputValue] = useState('');
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [listTitle, setListTitle] = useState('');
@@ -50,22 +49,6 @@ const CreateScreen = ({ items, addItem, deleteItem, saveList, setError, setSucce
   const [confirm, setConfirm] = useState(false);
   const [priority, setPriority] = useState('Low');
   const [budget, setBudget] = useState('1');
-
-  // Initialize database
-  useEffect(() => {
-    const setupDatabase = async () => {
-      try {
-        const initialized = await initializeDatabase();
-        if (initialized) {
-          const storedList = await getAllLists(userId);
-          dispatch(fetchLists(storedList));
-        }
-      } catch (error) {
-        console.error('Database Error:', error);
-      }
-    };
-    setupDatabase();
-  }, [dispatch]);
 
   // Animation for item addition
   const animatePress = () => {
@@ -102,7 +85,7 @@ const CreateScreen = ({ items, addItem, deleteItem, saveList, setError, setSucce
       return;
     }
 
-    dispatch(saveList({ listTitle, listTag, description, priority, budget,userId }));
+    dispatch(saveList({ listTitle, listTag, description, priority, budget, userId }));
     saveListToDatabase(listTitle, listTag, description, priority, budget, items, userId);
 
     dispatch(setSuccess(`List "${listTitle}" created successfully`));
@@ -122,7 +105,7 @@ const CreateScreen = ({ items, addItem, deleteItem, saveList, setError, setSucce
   // SAVE LIST TO DATABASE
   const saveListToDatabase = async (listTitle, listTag, description, priority, budget, items, userId) => {
     try {
-      if (!listTitle || !listTag || !items || !budget) {
+      if (!listTitle || !listTag || !items || !budget || !userId) {
         throw new Error('Missing required fields');
       }
 

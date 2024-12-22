@@ -42,7 +42,7 @@ export default function RegisterScreen({ navigation }) {
 
         const name = '';
         const phone = '';
-        const status = 'active'
+        const status = 'active';
 
         try {
             if (!email || !password) {
@@ -50,6 +50,30 @@ export default function RegisterScreen({ navigation }) {
                     type: 'error',
                     text1: 'Error',
                     text2: 'Email and password are required.',
+                    position: 'bottom',
+                });
+                return;
+            }
+
+            // VALIDATE EMAIL
+            const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+            if (!emailRegex.test(email)) {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Invalid Email',
+                    text2: 'Please enter a valid email address.',
+                    position: 'bottom',
+                });
+                return;
+            }
+
+            // VALIDATE PASWWORD
+            const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+            if (!passwordRegex.test(password)) {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Weak Password',
+                    text2: 'Password must be at least 8 characters long and contain both letters and numbers.',
                     position: 'bottom',
                 });
                 return;
@@ -89,9 +113,9 @@ export default function RegisterScreen({ navigation }) {
         } finally {
             setLoading(false);
         }
-
     };
     // ENDS
+
 
     const handleGoogleSignIn = () => {
         // Handle Google Sign In logic here

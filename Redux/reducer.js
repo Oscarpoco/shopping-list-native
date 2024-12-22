@@ -9,7 +9,8 @@ import
   UPDATE_LIST, 
   SAVE_LIST, 
   SET_ACTIVE_FILTER,
-  SET_USER 
+  SET_USER,
+  LOGOUT 
 } from './actions';
 
 const initialState = {
@@ -20,6 +21,7 @@ const initialState = {
   success: null,
   activeFilter: 'All Lists',
   userId: null,
+  isLoggoedIn: false,
 };
 
 const shoppingListReducer = (state = initialState, action) => {
@@ -30,8 +32,19 @@ const shoppingListReducer = (state = initialState, action) => {
       return{
         ...state,
         userId: action.payload,
+        isLoggoedIn: true,
       }
-      // ENDS
+
+    case LOGOUT:
+      return{
+        ...state,
+        userId: null,
+        isLoggoedIn: false,
+        lists: [],
+        shoppingList: [],
+        items: []
+      }
+    // ENDS
 
     // ADD ITEM
     case ADD_ITEM:

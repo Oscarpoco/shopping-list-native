@@ -6,7 +6,7 @@ import { setActiveFilter } from '../Redux/actions.js';
 
 // ACTIONS
 import { fetchLists } from '../Redux/actions.js';
-import { initializeDatabase, getAllLists } from '../Database/sql.js';
+import { getAllLists } from '../Database/sql.js';
 
 import Entypo from 'react-native-vector-icons/Entypo';
 import Feather from 'react-native-vector-icons/Feather';
@@ -18,32 +18,33 @@ const { width } = Dimensions.get('window');
 const HomeScreen = ({ navigation }) => {
     const dispatch = useDispatch();
     const lists = useSelector(state => state.lists) || [];
+    const isLoggoedIn = useSelector(state => state.isLoggoedIn);
     const userId  =useSelector(state => state.userId) || "";
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [filteredLists, setFilteredLists] = useState(lists);
 
+    // FETCH LISTS
     useEffect(() => {
         const setupDatabase = async () => {
-            try {
-                const initialized = await initializeDatabase();
-                if (initialized) {
-                    const storedList = await getAllLists(userId);
-                    dispatch(fetchLists(storedList));
-                }
-            } catch (error) {
-                console.error('Database initialization error:', error);
+            if(isLoggoedIn){
+                const storedList = await getAllLists(userId);
+                dispatch(fetchLists(storedList));
             }
         };
         setupDatabase();
-    }, [dispatch]);
+    }, [dispatch, userId, isLoggoedIn]);
+    // ENDS
 
+    // UPDATE SEARCH QUERIES
     useEffect(() => {
         const filtered = lists.filter(list => 
             list.listTitle?.toLowerCase().includes(searchQuery.toLowerCase())
         );
         setFilteredLists(filtered);
     }, [lists, searchQuery]);
+    // ENDS
+
 
     const renderListItem = ({ item }) => {
         return (

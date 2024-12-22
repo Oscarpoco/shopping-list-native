@@ -24,7 +24,7 @@ export const initializeDatabase = async () => {
         budget NUMBER,
         status TEXT NOT NULL,
         priority TEXT NOT NULL,
-        userId Number,
+        userId INTEGER,
         FOREIGN KEY (userId) REFERENCES users(id)
       );
 
@@ -57,7 +57,7 @@ export const addList = async (listTitle, timestamp, listTag, items, description,
     if (!db) throw new Error('DATABASE NOT INITIALIZED');
   
     const result = await db.runAsync(
-      'INSERT INTO shoppingList (listTitle, timestamp, listTag, items, description, budget, status, priority) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO shoppingList (listTitle, timestamp, listTag, items, description, budget, status, priority, userId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
       listTitle, timestamp, listTag, items, description, budget, status, priority, userId
     );
   
@@ -77,6 +77,11 @@ export const getAllLists = async (userId) => {
     if (!db) throw new Error('DATABASE NOT INITIALIZED');
   
     const rows = await db.getAllAsync('SELECT * FROM shoppingList WHERE userId = ?', userId);
+    
+    if (rows.length === 0) {
+      throw new Error('No shopping lists found for this user.');
+    }
+
     console.log(`RETRIEVED ${rows.length} SHOPPING LIST SUCCESSFULLY`);
     return rows.map((row) => ({
 
@@ -92,7 +97,7 @@ export const getAllLists = async (userId) => {
 
     }));
   } catch (error) {
-    console.error('ERROR RETRIEVING IMAGES:', error);
+    console.error('ERROR RETRIEVING LISTS:', error);
     throw new Error('Failed to retrieve lists from database');
   }
 };
