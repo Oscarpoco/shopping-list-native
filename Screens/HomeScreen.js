@@ -20,7 +20,6 @@ const HomeScreen = ({ navigation }) => {
     const lists = useSelector(state => state.lists) || [];
     const isLoggoedIn = useSelector(state => state.isLoggoedIn);
     const userId  =useSelector(state => state.userId) || "";
-    const [isRefreshing, setIsRefreshing] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [filteredLists, setFilteredLists] = useState(lists);
 
@@ -212,8 +211,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 20,
-        paddingTop: 50,
-        paddingBottom: 20,
+        paddingTop: 35,
+        paddingBottom: 10,
         backgroundColor: '#fff',
         elevation: 4,
         shadowColor: '#000',

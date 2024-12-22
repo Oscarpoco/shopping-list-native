@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View, Pressable, ScrollView, Image, Switch } from 'react-native';
 
 // REDUX
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setLoggedOutUser } from '../Redux/actions';
 // ENDS
 
@@ -18,7 +18,13 @@ const ProfileScreen = ({navigation}) => {
     const [notificationsEnabled, setNotificationsEnabled] = useState(true);
     const [darkModeEnabled, setDarkModeEnabled] = useState(false);
     const dispatch = useDispatch();
+    const lists = useSelector((state) => state.lists);
+    const complete = lists.filter((list) => list.status === 'done').length;
+    const listItems = lists
+        .filter((list) => list.items)
+        .reduce((count, list) => count + JSON.parse(list.items).length, 0);
     // ENDS
+
 
     // HANDLE LOGOUT
     const handleLogout = () => {
@@ -70,29 +76,29 @@ const ProfileScreen = ({navigation}) => {
                 <View style={styles.profileInfo}>
                     <View style={styles.avatarContainer}>
                         <Image
-                            source={{ uri: '/api/placeholder/100/100' }}
+                            source={require('../assets/icon.png')}
                             style={styles.avatar}
                         />
                         <Pressable style={styles.editAvatarButton}>
                             <Feather name="camera" size={16} color="#fff" />
                         </Pressable>
                     </View>
-                    <Text style={styles.profileName}>John Doe</Text>
-                    <Text style={styles.profileEmail}>john.doe@example.com</Text>
+                    <Text style={styles.profileName}>Oscar Poco</Text>
+                    <Text style={styles.profileEmail}>oscar@gmail.com</Text>
                 </View>
             </LinearGradient>
 
             <View style={styles.statsContainer}>
                 <View style={styles.statItem}>
-                    <Text style={styles.statNumber}>28</Text>
+                    <Text style={styles.statNumber}>{lists.length}</Text>
                     <Text style={styles.statLabel}>Lists</Text>
                 </View>
                 <View style={[styles.statItem, styles.statItemBorder]}>
-                    <Text style={styles.statNumber}>156</Text>
+                    <Text style={styles.statNumber}>{listItems}</Text>
                     <Text style={styles.statLabel}>Items</Text>
                 </View>
                 <View style={styles.statItem}>
-                    <Text style={styles.statNumber}>12</Text>
+                    <Text style={styles.statNumber}>{complete}</Text>
                     <Text style={styles.statLabel}>Complete</Text>
                 </View>
             </View>
@@ -107,23 +113,6 @@ const ProfileScreen = ({navigation}) => {
                 />
             </View>
 
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Preferences</Text>
-                <View style={styles.settingsContainer}>
-                    <SettingItem
-                        icon={<Feather name="bell" size={20} color="#45B7D1" />}
-                        title="Notifications"
-                        value={notificationsEnabled}
-                        onValueChange={setNotificationsEnabled}
-                    />
-                    <SettingItem
-                        icon={<Feather name="moon" size={20} color="#4ECDC4" />}
-                        title="Dark Mode"
-                        value={darkModeEnabled}
-                        onValueChange={setDarkModeEnabled}
-                    />
-                </View>
-            </View>
 
             <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Help & Support</Text>
