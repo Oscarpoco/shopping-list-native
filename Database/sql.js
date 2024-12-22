@@ -7,7 +7,7 @@ let db;
 export const initializeDatabase = async () => {
   try {
     if (!db) {
-      db = await openDatabaseAsync('appDatabase.db');
+      db = await openDatabaseAsync('Database.db');
     }
 
     // CREATE TABLES IF NOT EXISTS WITH PRAGMA JOURNAL MODE
@@ -33,7 +33,7 @@ export const initializeDatabase = async () => {
         password TEXT NOT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        phone TEXT NOT NULL UNIQUE,
+        phone TEXT,
         status TEXT NOT NULL
       );
     `);
@@ -170,25 +170,17 @@ export const getListById = async (id) => {
 // USER FUNCTIONS
 
 // REGISTER USER
-export const registerUser = async (user) => 
+export const registerUser = async (name, email, password, phone, status) => 
   {
       try {
-          if(!database)
+          if(!db)
               {
                   throw new Error("Database not initialized");
               }
-          const response = await database.execAsync
-          (
-              `
-              INSER INTO users(name ? email ? password ? phone? status? ) VALUES(?, ?, ?, ?, ?)
-              `,
-              [
-                  user.name,
-                  user.email,
-                  user.password,
-                  user.phone,
-                  user.status
-              ]
+          const response = await db.runAsync(
+              
+              'INSERT INTO users (name, email, password, phone, status) VALUES (?, ?, ?, ?, ?)',
+              name, email, password, phone, status
           );
 
           console.log(`USER SUCCESSFULLY REGISTERED WITH THE ID ${response.lastInsertRowId}`);
@@ -202,26 +194,19 @@ export const registerUser = async (user) =>
 
 
 // LOGIN A USER
-export const LoginUser = async (user) => 
-  {
+export const LoginUser = async (email, password) => {
       try {
 
-          if(!database)
-              {
+          if(!db){
                   throw new Error(`Database not initialized`);
               }
 
-          const response = await database.execAsync
-              (
-                  `SELECT * FROM users WHERE email = ? AND password = ?` ,
-                  [
-                      user.email, 
-                      user.password
-                  ]
+          const response = await db.getAllAsync(
+                  'SELECT * FROM users WHERE email = ? AND password = ?' ,
+                  email, password
               );
 
-          if(response && response.length > 0)
-              {
+          if(response && response.length > 0){
                   const userRecord = response[0];
                   console.log(`USER SUCCESSFULLY LOGGED IN WITH THE ID ${userRecord.id}`);
                   return userRecord;

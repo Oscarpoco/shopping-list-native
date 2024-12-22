@@ -18,6 +18,7 @@ const { width } = Dimensions.get('window');
 const HomeScreen = ({ navigation }) => {
     const dispatch = useDispatch();
     const lists = useSelector(state => state.lists) || [];
+    const userId  =useSelector(state => state.userId) || "";
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [filteredLists, setFilteredLists] = useState(lists);
@@ -43,6 +44,8 @@ const HomeScreen = ({ navigation }) => {
         );
         setFilteredLists(filtered);
     }, [lists, searchQuery]);
+
+    console.log("userId", userId);
 
     const renderListItem = ({ item }) => {
         return (

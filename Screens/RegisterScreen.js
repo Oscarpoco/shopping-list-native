@@ -10,24 +10,88 @@ import {
     SafeAreaView
 } from 'react-native';
 
-// REGISTER A USER
-import registerUser from "../Database/sql.js";
+// DATABASE
+import {registerUser, LoginUser} from "../Database/sql.js";
+// ENDS
+
+// REDUX
+import {useDispatch} from 'react-redux';
+import { setLoggedInUser } from '../Redux/actions.js';
+// ENDS
 
 // ICONS
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
+import Toast from 'react-native-toast-message';
+// ENDS
 
 export default function RegisterScreen({ navigation }) {
+
+    // LOCAL STATES
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
+    // ENDS
 
-    const handleRegister = () => {
-        // Handle registration logic here
+    const dispatch = useDispatch();
+    
+
+    // HANDLE REGISTER
+    const handleRegister = async () => {
         setLoading(true);
-        // Add your registration logic
-        setLoading(false);
+
+        const name = '';
+        const phone = '';
+        const status = 'active'
+
+        try {
+            if (!email || !password) {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Error',
+                    text2: 'Email and password are required.',
+                    position: 'bottom',
+                });
+                return;
+            }
+
+            // REGISTER
+            const response = await registerUser(name, email, password, phone, status);
+
+            if (response) {
+                Toast.show({
+                    type: 'success',
+                    text1: 'Success',
+                    text2: 'Registration Successful',
+                    position: 'bottom',
+                });
+
+                // SIGN IN
+                const signIn = await LoginUser(email, password);
+                const userId = signIn.id;
+                dispatch(setLoggedInUser(userId));
+                Toast.show({
+                    type: 'success',
+                    text1: 'Success',
+                    text2: 'Logged in Successfully',
+                    position: 'bottom',
+                });
+                navigation.navigate('Home');
+            }
+        } catch (error) {
+            console.error('Error during registration or login:', error);
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: 'Something went wrong, please try again.',
+                position: 'bottom',
+            });
+        } finally {
+            setLoading(false);
+        }
+
     };
+    // ENDS
 
     const handleGoogleSignIn = () => {
         // Handle Google Sign In logic here

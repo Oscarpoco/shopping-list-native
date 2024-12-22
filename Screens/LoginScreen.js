@@ -47,13 +47,8 @@ export default function LoginScreen({ navigation }) {
     const handleSubmitLogin = async () => 
         {
             setLoading(true);
-
-            const user = {
-                email,
-                password
-            }
             try {
-                const response = await LoginUser(user);
+                const response = await LoginUser(email, password);
                 const userId = response.id;
                 dispatch(setLoggedInUser(userId));
                 navigation.navigate('Home');
