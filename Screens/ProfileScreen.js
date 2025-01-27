@@ -1,28 +1,114 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, Pressable, ScrollView, Image, Switch } from 'react-native';
+import { StyleSheet, Text, View, Pressable, ScrollView, Image, Modal, TextInput, ActivityIndicator } from 'react-native';
 
 // REDUX
 import { useDispatch, useSelector } from "react-redux";
-import { setLoggedOutUser } from '../Redux/actions';
+import { setLoggedOutUser, saveUserData } from '../Redux/actions';
+// ENDS
+
+// DATABASE
+import { UpdateUser, getUserById } from '../Database/sql';
 // ENDS
 
 // ICONS
 import { LinearGradient } from 'expo-linear-gradient';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import Toast from 'react-native-toast-message';
 
 
 const ProfileScreen = ({navigation}) => {
 
     // LOCAL STATE
-    const dispatch = useDispatch();
-    const lists = useSelector((state) => state.lists);
+
+    // FORM DATA
     const user = useSelector((state) => state.user);
     console.log("User Details", user);
+
+
+    const [updateDetailsModal, setUpdateDetailsModal] = useState(false);
+    const [name, setName] = useState(user.name || '');
+    const [phone, setPhone] = useState(user.phone || '');
+    const [isLoading, setIsLoading] = useState(false);
+
+
+    const dispatch = useDispatch();
+    const lists = useSelector((state) => state.lists);
     const complete = lists.filter((list) => list.status === 'done').length;
     const listItems = lists
         .filter((list) => list.items)
         .reduce((count, list) => count + JSON.parse(list.items).length, 0);
+    // ENDS
+
+    // HANDLE UPDATE
+    const handleUpdate = async () => {
+        try {
+          // Validate inputs
+          if (!name.trim()) {
+            Toast.show({
+              type: 'error',
+              text1: 'Name Required',
+              text2: 'Please enter your name',
+              position: 'bottom',
+            });
+            return;
+          }
+    
+          if (!phone.trim()) {
+            Toast.show({
+              type: 'error',
+              text1: 'Phone Required',
+              text2: 'Please enter your phone number',
+              position: 'bottom',
+            });
+            return;
+          }
+    
+          // Phone number validation (basic)
+          const phoneRegex = /^\d{10}$/;
+          if (!phoneRegex.test(phone)) {
+            Toast.show({
+              type: 'error',
+              text1: 'Invalid Phone',
+              text2: 'Please enter a valid 10-digit phone number',
+              position: 'bottom',
+            });
+            return;
+          }
+    
+          setIsLoading(true);
+    
+          // Update in database
+          await UpdateUser(user.id, name, phone);
+    
+          // Fetch updated user data
+          const userData = await getUserById(user.id);
+    
+          // Update Redux store
+          dispatch(saveUserData(userData));
+    
+          Toast.show({
+            type: 'success',
+            text1: 'Profile Updated',
+            text2: 'Your details have been updated successfully',
+            position: 'bottom',
+          });
+    
+          setUpdateDetailsModal(false);
+    
+        } catch (error) {
+          console.error('Profile update error:', error);
+          Toast.show({
+            type: 'error',
+            text1: 'Update Failed',
+            text2: 'Failed to update profile. Please try again.',
+            position: 'bottom',
+          });
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
     // ENDS
 
 
@@ -61,7 +147,8 @@ const ProfileScreen = ({navigation}) => {
                             style={styles.avatar}
                         />
                     </View>
-                    <Text style={styles.profileName}>{user?.name || ''}</Text>
+                    <Text style={styles.profileName}>{name}</Text>
+                    <Text style={styles.profileEmail}>{phone}</Text>
                     <Text style={styles.profileEmail}>{user?.email || ''}</Text>
                 </View>
             </LinearGradient>
@@ -87,7 +174,7 @@ const ProfileScreen = ({navigation}) => {
                     icon={<Feather name="user" size={20} color="#45B7D1" />}
                     title="Personal Information"
                     subtitle="Update your profile details"
-                    onPress={() => {}}
+                    onPress={() => {setUpdateDetailsModal(true)}}
                 />
             </View>
 
@@ -103,8 +190,64 @@ const ProfileScreen = ({navigation}) => {
             </View>
 
             <Pressable style={styles.logoutButton} onPress={() => handleLogout()}>
-                <Text style={styles.logoutButtonText}>Log Out</Text>
+                <Text style={styles.logoutButtonText}>Logout</Text>
             </Pressable>
+
+            {/* DEATAILS MODAL*/}
+            <Modal
+                visible={updateDetailsModal}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setUpdateDetailsModal(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>User Details</Text>
+                        <Text style={styles.modalSubtitle}>Update your details</Text>
+
+                        <View style={styles.inputWrapper}>
+                            <MaterialIcons name="verified-user" size={22} color="#2D3748" style={styles.inputIcon} />
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Enter your name"
+                                placeholderTextColor="#718096"
+                                value={name}
+                                onChangeText={setName}
+                                autoCapitalize="none"
+                            />
+                        </View>
+
+                        <View style={styles.inputWrapper}>
+                            <MaterialIcons name="phone-iphone" size={22} color="#2D3748" style={styles.inputIcon} />
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Enter your phone number"
+                                placeholderTextColor="#718096"
+                                value={phone}
+                                onChangeText={setPhone}
+                                 keyboardType="phone-pad"
+                            />
+                        </View>
+
+                        <View style={styles.modalButtons}>
+                            <Pressable
+                                style={[styles.modalButton, styles.cancelButton]}
+                                onPress={() => setUpdateDetailsModal(false)}
+                            >
+                                <Text style={styles.cancelButtonText}>Cancel</Text>
+                            </Pressable>
+                            <Pressable
+                                style={[styles.modalButton, styles.submitButton]}
+                                onPress={handleUpdate}
+                            >
+                                <Text style={styles.submitButtonText}>
+                                    {isLoading ? <ActivityIndicator size={'small'} color={'#fff'} /> : 'Submit'}
+                                </Text>
+                            </Pressable>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </ScrollView>
     );
 };
@@ -279,6 +422,97 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '600',
         color: '#fff',
+    },
+
+    // MODAL
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalContent: {
+        backgroundColor: 'white',
+        borderRadius: 20,
+        padding: 24,
+        width: '85%',
+        maxWidth: 400,
+    },
+    modalTitle: {
+        fontSize: 24,
+        fontWeight: '600',
+        color: '#1A202C',
+        marginBottom: 8,
+        textAlign: 'center',
+    },
+    modalSubtitle: {
+        fontSize: 16,
+        color: '#4A5568',
+        marginBottom: 24,
+        textAlign: 'center',
+    },
+    modalButtons: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 24,
+    },
+    modalButton: {
+        flex: 1,
+        height: 50,
+        borderRadius: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginHorizontal: 8,
+    },
+    cancelButton: {
+        backgroundColor: '#EDF2F7',
+    },
+    submitButton: {
+        backgroundColor: '#6C63FF',
+    },
+    cancelButtonText: {
+        color: '#4A5568',
+        fontSize: 16,
+        fontWeight: '600',
+    },
+    submitButtonText: {
+        color: '#FFFFFF',
+        fontSize: 16,
+        fontWeight: '600',
+    },
+
+    inputWrapper:
+    {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#FFFFFF',
+        borderRadius: 16,
+        marginBottom: 16,
+        paddingHorizontal: 16,
+        height: 60,
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.05,
+        shadowRadius: 3,
+        elevation: 2,
+    },
+
+    inputIcon:
+    {
+        marginRight: 12,
+    },
+
+    input:
+    {
+        flex: 1,
+        color: '#2D3748',
+        fontSize: 16,
+        letterSpacing: 0.3,
     },
 });
 
