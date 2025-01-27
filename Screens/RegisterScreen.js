@@ -11,12 +11,12 @@ import {
 } from 'react-native';
 
 // DATABASE
-import {registerUser, LoginUser} from "../Database/sql.js";
+import {registerUser, LoginUser, getUserById} from "../Database/sql.js";
 // ENDS
 
 // REDUX
 import {useDispatch} from 'react-redux';
-import { setLoggedInUser } from '../Redux/actions.js';
+import { setLoggedInUser, saveUserData } from '../Redux/actions.js';
 // ENDS
 
 // ICONS
@@ -68,14 +68,36 @@ export default function RegisterScreen({ navigation }) {
             }
 
             // VALIDATE PASWWORD
-            const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
-            if (!passwordRegex.test(password)) {
-                Toast.show({
-                    type: 'error',
-                    text1: 'Weak Password',
-                    text2: 'Password must be at least 8 characters long and contain both letters and numbers.',
-                    position: 'bottom',
-                });
+            const validatePassword = (password) => {
+                const checks = {
+                    length: password.length >= 8,
+                    lowercase: /[a-z]/.test(password),
+                    uppercase: /[A-Z]/.test(password),
+                    number: /\d/.test(password),
+                    special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)
+                };
+            
+                if (!Object.values(checks).every(check => check)) {
+                    let message = 'Password must have:';
+                    if (!checks.length) message += '\n- At least 8 characters';
+                    if (!checks.lowercase) message += '\n- One lowercase letter';
+                    if (!checks.uppercase) message += '\n- One uppercase letter';
+                    if (!checks.number) message += '\n- One number';
+                    if (!checks.special) message += '\n- One special character';
+            
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Password Requirements Not Met',
+                        text2: message,
+                        position: 'bottom',
+                    });
+                    return false;
+                }
+                return true;
+            };
+            
+            // Usage
+            if (!validatePassword(password)) {
                 return;
             }
 
@@ -101,6 +123,12 @@ export default function RegisterScreen({ navigation }) {
                     position: 'bottom',
                 });
                 navigation.navigate('Home');
+
+                // GET DETAILS
+                const user = await getUserById(userId);
+                console.log(user);
+                const userData = user;
+                dispatch(saveUserData(userData));
             }
         } catch (error) {
             console.error('Error during registration or login:', error);

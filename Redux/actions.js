@@ -12,11 +12,17 @@ export const SET_SUCCESS = 'SET_SUCCESS';
 export const SET_ACTIVE_FILTER = 'SET_ACTIVE_FILTER';
 export const SET_USER = 'SET_USER';
 export const LOGOUT = 'LOGOUT';
+export const USER_DETAILS = 'USER_DETAILS'
 
 // USER
 export const setLoggedInUser = (userId)=> ({
   type: SET_USER,
   payload: userId,
+})
+
+export const saveUserData = (userData)=> ({
+  type: USER_DETAILS,
+  payload: userData,
 })
 
 export const setLoggedOutUser = ()=>({

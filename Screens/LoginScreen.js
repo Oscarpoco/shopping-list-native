@@ -12,10 +12,10 @@ import {
 
 // REDUX 
 import { useDispatch } from 'react-redux';
-import { setLoggedInUser } from '../Redux/actions.js';
+import { setLoggedInUser, saveUserData } from '../Redux/actions.js';
 
 // AUTHENTICATION DATABASE
-import {LoginUser, initializeDatabase} from "../Database/sql.js";
+import {LoginUser, initializeDatabase, getUserById} from "../Database/sql.js";
 
 // ICONS
 import { MaterialIcons } from '@expo/vector-icons';
@@ -52,6 +52,12 @@ export default function LoginScreen({ navigation }) {
                 const userId = response.id;
                 dispatch(setLoggedInUser(userId));
                 navigation.navigate('Home');
+
+                // GET DETAILS
+                const user = await getUserById(userId);
+                console.log(user);
+                const userData = user;
+                dispatch(saveUserData(userData));
 
             } catch (error) {
                 console.error('Login failed:', error); 

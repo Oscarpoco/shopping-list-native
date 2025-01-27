@@ -15,10 +15,10 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 const ProfileScreen = ({navigation}) => {
 
     // LOCAL STATE
-    const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-    const [darkModeEnabled, setDarkModeEnabled] = useState(false);
     const dispatch = useDispatch();
     const lists = useSelector((state) => state.lists);
+    const user = useSelector((state) => state.user);
+    console.log("User Details", user);
     const complete = lists.filter((list) => list.status === 'done').length;
     const listItems = lists
         .filter((list) => list.items)
@@ -46,20 +46,6 @@ const ProfileScreen = ({navigation}) => {
         </Pressable>
     );
 
-    const SettingItem = ({ icon, title, value, onValueChange }) => (
-        <View style={styles.settingItem}>
-            <View style={styles.settingItemLeft}>
-                {icon}
-                <Text style={styles.settingItemTitle}>{title}</Text>
-            </View>
-            <Switch
-                value={value}
-                onValueChange={onValueChange}
-                trackColor={{ false: '#DDD', true: '#45B7D1' }}
-                thumbColor={value ? '#fff' : '#fff'}
-            />
-        </View>
-    );
 
     return (
         <ScrollView style={styles.container}>
@@ -67,11 +53,6 @@ const ProfileScreen = ({navigation}) => {
                 colors={['#45B7D1', '#69D2EC']}
                 style={styles.header}
             >
-                <View style={styles.headerTop}>
-                    <Pressable style={styles.editAvatarButton}>
-                        <Feather name="camera" size={16} color="#fff" />
-                    </Pressable>
-                </View>
                 
                 <View style={styles.profileInfo}>
                     <View style={styles.avatarContainer}>
@@ -79,12 +60,9 @@ const ProfileScreen = ({navigation}) => {
                             source={require('../assets/icon.png')}
                             style={styles.avatar}
                         />
-                        <Pressable style={styles.editAvatarButton}>
-                            <Feather name="camera" size={16} color="#fff" />
-                        </Pressable>
                     </View>
-                    <Text style={styles.profileName}>Oscar Poco</Text>
-                    <Text style={styles.profileEmail}>oscar@gmail.com</Text>
+                    <Text style={styles.profileName}>{user?.name || ''}</Text>
+                    <Text style={styles.profileEmail}>{user?.email || ''}</Text>
                 </View>
             </LinearGradient>
 

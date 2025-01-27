@@ -153,7 +153,7 @@ export const deleteListDatabase = async (id) => {
 
 
   
-// FETCH SINGLE IMAGE BY ID
+// FETCH SINGLE LIST BY ID
 export const getListById = async (id) => {
   try {
     if (!db) throw new Error('DATABASE NOT INITIALIZED');
@@ -230,4 +230,71 @@ export const LoginUser = async (email, password) => {
           throw new Error("Failed to login user");
       }
   }
+
+  // UPDATE USER
+  export const UpdateUser = async (id, name, phone)=>{
+    try {
+    
+      if(!db){
+        throw new Error(`Database not initialized`);
+      }
+  
+      // UPDATE PROFILE
+      const result = await db.runAsync(
+        'UPDATE users SET name = ?, phone = ? WHERE id = ?',
+        [name, phone, id]
+      );
+  
+      if (result.changes === 0) {
+        console.warn(`NO ROWS UPDATED FOR USER ID: ${id}`);
+        throw new Error('No user details found with the specified userID');
+      }
+      
+      console.log(`USER DETAILS UPDATED SUCCESSFULLY. ROWS MODIFIED: ${result.changes}`);
+      return result.changes;
+  
+    } catch (error) {
+      console.error('ERROR UPDATING USER DETAILS:', error);
+      throw new Error('Failed to user details in database');
+    }
+  }
+
+  // GET USER BY ID
+  export const getUserById = async (userId) => {
+    try {
+      if (!db) {
+        throw new Error('Database not initialized');
+      }
+  
+      // Validate userId
+      if (!userId || typeof userId !== 'number') {
+        throw new Error('Invalid user ID provided');
+      }
+  
+      const user = await db.getFirstAsync(
+        `SELECT 
+          id,
+          name,
+          email,
+          phone,
+          status,
+          created_at,
+          updated_at
+        FROM users 
+        WHERE id = ?`,
+        [userId]
+      );
+  
+      if (!user) {
+        throw new Error(`No user found with ID: ${userId}`);
+      }
+  
+      return user;
+    } catch (error) {
+      console.error('Error fetching user:', error);
+      throw new Error('Failed to fetch user from database');
+    }
+  };
+
 // ENDS
+
