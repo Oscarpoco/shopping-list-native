@@ -27,8 +27,8 @@ const ProfileScreen = ({navigation}) => {
 
 
     const [updateDetailsModal, setUpdateDetailsModal] = useState(false);
-    const [name, setName] = useState(user.name || '');
-    const [phone, setPhone] = useState(user.phone || '');
+    const [name, setName] = useState(user?.name || '');
+    const [phone, setPhone] = useState(user?.phone || '');
     const [isLoading, setIsLoading] = useState(false);
 
 
